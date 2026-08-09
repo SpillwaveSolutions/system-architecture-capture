@@ -85,3 +85,10 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/sac_pack.py" services/<slug>.md --repo . 
 ## Report
 
 Summarize: system name, service count, infra tools found, IdPs, pipelines, open gaps (unverified, missing owners, orphan services).
+
+## Downstream use
+
+Once the second brain is populated, point product/engineering design work at skill
+**sac-design-with** (`/sac-design`): new features, services, APIs, web/mobile apps
+should load packs + blast radius from this graph before proposing greenfield components.
+

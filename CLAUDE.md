@@ -34,3 +34,5 @@ bash tools/ci-local.sh
 ## Provider connectivity
 
 External systems (wiki, tickets, cloud APIs, IdP admin) are reached via host **skills/MCPs**. SAC normalizes exports and scans git trees — it does not re-implement every provider.
+
+When designing new features/services/APIs/apps against a captured estate, use skill `sac-design-with` (load pack + blast radius first).

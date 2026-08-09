@@ -52,6 +52,26 @@ Cloud-agnostic and stack-agnostic — deep pattern awareness without locking to 
 Host **skills and MCPs** connect and export; SAC ingests those exports and scans
 repo-local code/IaC. You do not need SAC to re-implement provider APIs.
 
+
+## When designing (use the second brain)
+
+After capture, **design against the graph** — new features, services, APIs, web/mobile apps, pipelines:
+
+```bash
+# Context pack around a service
+python3 scripts/sac_pack.py --bundle knowledge --focus services/order-service.md --hops 2
+
+# Impact of changing something
+python3 scripts/sac_blast_radius.py --bundle knowledge --from apis/orders-api.md
+
+# Agent skill
+# /sac-design "add returns API for mobile checkout"
+```
+
+Skill: `sac-design-with` · Command: `/sac-design`
+
+The second brain answers: what already exists, what to reuse, who owns it, and blast radius — before you invent a parallel stack.
+
 ## Install
 
 ### Claude Code

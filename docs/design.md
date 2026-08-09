@@ -60,3 +60,14 @@ Second-brain content is **not free-form**. Types and relations live in:
 
 `sac_validate.py --schema` enforces the pack. Prefer OKF-native types when they fit (`API`, `Metric`, `DecisionRecord`, `TicketLink`); use SAC types for topology.
 
+## Design-time consumption
+
+SAC is dual-mode:
+
+1. **Build** the second brain (orchestrator + scanners + ingest).
+2. **Use** it when designing new features, services, APIs, mobile/web apps, or infra
+   via `sac-design-with` / `sac_pack` / `sac_blast_radius` / `sac_search`.
+
+Design recommendations must cite existing concepts and edges; inventing a new
+service without checking the graph is a process failure.
+
