@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "name": "sac-okf-schema-pack",
-  "description": "Standard OKF schemas for a project second brain (OKF core + PKC + SAC architecture)",
+  "description": "Standard OKF schemas for the SAC second brain: system architecture information (OKF core + PKC + SAC topology types)",
   "envelope": "okf-concept-envelope.json",
   "okf_version": "0.2",
   "types": [
@@ -527,5 +527,5 @@
     "timestamp": "ISO-8601",
     "tags": "Array of strings"
   },
-  "second_brain_goal": "Indexed, typed knowledge over monorepo/repos that LLMs query with progressive disclosure"
+  "second_brain_goal": "The specialized second brain for services, packages, infra, pipelines, identity, and architectural context over monorepo/repos"
 }

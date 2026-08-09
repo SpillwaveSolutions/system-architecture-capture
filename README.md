@@ -1,8 +1,10 @@
 # System Architecture Capture (SAC)
 
-**Build a second brain for your monorepo or multi-repo estate.**
+**The second brain for system architecture information.**
 
-Reverse-engineer modern application systems into a durable [OKF](https://github.com/SpillwaveSolutions/okf-plugin) knowledge graph — on top of [Project Knowledge Capture (PKC)](https://github.com/SpillwaveSolutions/project-knowledge-capture) — so agents and humans can query architecture, ownership, and blast radius with precision.
+SAC is the **specialized second brain** for this class of knowledge: reverse-engineered services, packages, APIs, IaC, containers, serverless, CI/CD, networking, IAM, identity, ownership, and architectural context from monorepos or multi-repo estates.
+
+It materializes that information as a durable [OKF](https://github.com/SpillwaveSolutions/okf-plugin) graph using a **standard OKF schema pack** (plus [PKC](https://github.com/SpillwaveSolutions/project-knowledge-capture)) so agents and humans can query topology, ownership, and blast radius with precision.
 
 Works as a **Claude Code**, **Grok Build**, **Codex**, and **OpenCode** plugin.
 
@@ -12,6 +14,20 @@ Works as a **Claude Code**, **Grok Build**, **Codex**, and **OpenCode** plugin.
 | **Version** | 0.1.0 |
 | **License** | MIT |
 | **Depends on** | [PKC](https://github.com/SpillwaveSolutions/project-knowledge-capture) · [OKF](https://github.com/SpillwaveSolutions/okf-plugin) |
+
+## What this second brain is for
+
+| In scope (SAC) | Adjacent (other second brains) |
+|----------------|--------------------------------|
+| Services, packages, APIs, deps | Product narrative only (PKC) |
+| Containers, serverless, runtime | Meeting notes without system links |
+| IaC, network, IAM, secrets | Pure agent/harness graphs (okf-plugin) |
+| Pipelines, deploys, environments | |
+| IdP / OAuth / SSO evidence | |
+| Wiki + tickets as architecture context | |
+| Glossary, ownership, blast radius | |
+
+SAC does not replace PKC or OKF — it **is** the second brain **for system/architecture information**, built on their schemas and tooling.
 
 ## Why SAC
 

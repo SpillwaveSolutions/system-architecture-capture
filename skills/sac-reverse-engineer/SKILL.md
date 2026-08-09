@@ -5,7 +5,7 @@ description: End-to-end reverse-engineer one or more git repositories into a SAC
 
 # SAC Reverse Engineer
 
-Build a **second brain** for project information on the given monorepo or multi-repo set: walk code/IaC, materialize concepts using the **standard OKF schema pack** (`schemas/types.json`), wire relationships, validate with `--schema`, and leave a queryable knowledge bundle.
+Populate **the second brain for system architecture information** on the given monorepo or multi-repo set: walk code/IaC, materialize concepts using the **standard OKF schema pack** (`schemas/types.json`), wire relationships, validate with `--schema`, and leave a queryable knowledge bundle.
 
 ## Connectivity
 
