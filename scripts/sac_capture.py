@@ -313,6 +313,181 @@ def capture_scan(bundle: Path, scan: dict, *, system_name: str = "System") -> di
         refresh_catalog_index(bundle, cat)
 
     append_log(bundle, f"SAC scan capture: {stats}")
+
+    # Diagrams (Mermaid / PlantUML)
+    for d in scan.get("diagrams") or []:
+        kind = d.get("kind") or "Diagram"
+        rel = path_for_type(kind, d["slug"])
+        fmt = d.get("format") or "mermaid"
+        fence = "plantuml" if fmt == "plantuml" else "mermaid"
+        listing = (d.get("body") or "").rstrip()
+        body = (
+            f"# {d['title']}\n\n"
+            f"**Kind:** {kind}  \n"
+            f"**Format:** {fmt}  \n"
+            f"**Source:** `{d.get('path')}`\n\n"
+            f"## Diagram\n\n"
+            f"```{fence}\n{listing}\n```\n"
+        )
+        links = [
+            {"target": f"/{sys_path}", "rel": "part_of"},
+            {"target": f"/{sys_path}", "rel": "visualizes"},
+        ]
+        _, st = write_concept(
+            bundle,
+            rel,
+            {
+                "type": kind,
+                "title": d["title"],
+                "description": f"{kind} ({fmt}) from {d.get('path')}",
+                "tags": ["sac", "diagram", fmt, str(kind).lower()],
+                "diagram_format": fmt,
+                "diagram_kind": kind,
+                "status": "active",
+                "truth_state": "current",
+                "verified": False,
+                "source": "sac-scan",
+                "generated": True,
+                "source_path": d.get("source_path") or d.get("path"),
+                "links": links,
+                "stable_timestamp": True,
+            },
+            body,
+        )
+        stats[st] = stats.get(st, 0) + 1
+
+    # Code structure: modules, classes, methods, functions
+    code = scan.get("code") or {}
+    for mod in code.get("modules") or []:
+        rel = path_for_type("Module", mod["slug"])
+        files = mod.get("files") or []
+        body = (
+            f"# {mod['name']}\n\n"
+            f"**Language:** {mod.get('language')}  \n"
+            f"**Path:** `{mod.get('path')}`\n\n"
+            f"## Files\n\n"
+            + ("\n".join(f"- `{f}`" for f in files[:40]) or "_None._")
+            + "\n"
+        )
+        _, st = write_concept(
+            bundle,
+            rel,
+            {
+                "type": "Module",
+                "title": mod["name"],
+                "description": f"{mod.get('language')} module {mod['name']}",
+                "tags": ["sac", "module", mod.get("language") or "code"],
+                "language": mod.get("language"),
+                "status": "active",
+                "truth_state": "current",
+                "verified": False,
+                "source": "sac-scan",
+                "generated": True,
+                "source_path": mod.get("path"),
+                "links": [{"target": f"/{sys_path}", "rel": "part_of"}],
+                "stable_timestamp": True,
+            },
+            body,
+        )
+        stats[st] = stats.get(st, 0) + 1
+
+    for cls in (code.get("classes") or [])[:2000]:
+        rel = path_for_type("Class", cls["slug"])
+        links = [{"target": f"/{sys_path}", "rel": "part_of"}]
+        if cls.get("module"):
+            links.append({"target": f"/modules/{cls['module']}.md", "rel": "declared_in"})
+        body = (
+            f"# {cls['name']}\n\n"
+            f"**Module:** {cls.get('module_name') or cls.get('module')}  \n"
+            f"**Language:** {cls.get('language')}  \n"
+            f"**Path:** `{cls.get('path')}`\n"
+        )
+        _, st = write_concept(
+            bundle,
+            rel,
+            {
+                "type": "Class",
+                "title": cls["name"],
+                "description": f"Class {cls['name']}",
+                "tags": ["sac", "class", cls.get("language") or "code"],
+                "language": cls.get("language"),
+                "status": "active",
+                "truth_state": "current",
+                "verified": False,
+                "source": "sac-scan",
+                "generated": True,
+                "source_path": cls.get("path"),
+                "links": links,
+                "stable_timestamp": True,
+            },
+            body,
+        )
+        stats[st] = stats.get(st, 0) + 1
+
+    for fn in (code.get("functions") or [])[:3000]:
+        rel = path_for_type("Function", fn["slug"])
+        links = []
+        if fn.get("module"):
+            links.append({"target": f"/modules/{fn['module']}.md", "rel": "declared_in"})
+        body = (
+            f"# {fn['name']}\n\n"
+            f"**Module:** {fn.get('module_name') or fn.get('module')}  \n"
+            f"**Language:** {fn.get('language')}  \n"
+            f"**Path:** `{fn.get('path')}`\n"
+        )
+        _, st = write_concept(
+            bundle,
+            rel,
+            {
+                "type": "Function",
+                "title": fn["name"],
+                "description": f"Function {fn['name']}",
+                "tags": ["sac", "function", fn.get("language") or "code"],
+                "language": fn.get("language"),
+                "status": "active",
+                "truth_state": "current",
+                "verified": False,
+                "source": "sac-scan",
+                "generated": True,
+                "source_path": fn.get("path"),
+                "links": links,
+                "stable_timestamp": True,
+            },
+            body,
+        )
+        stats[st] = stats.get(st, 0) + 1
+
+    for meth in (code.get("methods") or [])[:3000]:
+        rel = path_for_type("Method", meth["slug"])
+        class_slug = slugify(f"{meth.get('module', '')}-{meth.get('class', '')}")
+        links = [{"target": f"/classes/{class_slug}.md", "rel": "has_method"}]
+        body = (
+            f"# {meth.get('class')}.{meth['name']}\n\n"
+            f"**Class:** {meth.get('class')}  \n"
+            f"**Path:** `{meth.get('path')}`\n"
+        )
+        _, st = write_concept(
+            bundle,
+            rel,
+            {
+                "type": "Method",
+                "title": f"{meth.get('class')}.{meth['name']}",
+                "description": f"Method {meth['name']} on {meth.get('class')}",
+                "tags": ["sac", "method", meth.get("language") or "code"],
+                "language": meth.get("language"),
+                "status": "active",
+                "truth_state": "current",
+                "verified": False,
+                "source": "sac-scan",
+                "generated": True,
+                "source_path": meth.get("path"),
+                "links": links,
+                "stable_timestamp": True,
+            },
+            body,
+        )
+        stats[st] = stats.get(st, 0) + 1
+
     return stats
 
 

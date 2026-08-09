@@ -131,3 +131,17 @@ Do **not** create one type per AWS resource name — prefer the pattern types ab
 ## Relations added for data/events
 
 `caches`, `indexes`, `stores_in`, `streams_to`, `emits`, `consumes_event`, `schedules`, `backs_up`, `replicates_to`, `integrates_with`, `exposes_ui`, `served_by_cdn`, `secured_by_waf`, `measured_by`, `alerts_on`, `belongs_to_domain`, `in_context`, `for_channel`, `invokes`, `migrates`
+
+## Code structure & diagrams (v1.2)
+
+| Type | Why |
+|------|-----|
+| `Module` | Source module ≠ build `Package` |
+| `Class` / `Interface` / `Enum` | Type-level design & blast radius |
+| `Method` / `Function` | Behavioral units agents reason about |
+| `Wireframe` | PlantUML salt UI mockups |
+| `ArchitectureDiagram` … `ErdDiagram` | Design artifacts as first-class knowledge |
+| `SequenceDiagram` / `C4Diagram` | Interaction & C4 views |
+
+Scanners: `sac_scan_diagrams.py`, `sac_scan_code_structure.py`.
+

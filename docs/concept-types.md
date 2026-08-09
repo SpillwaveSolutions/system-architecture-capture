@@ -17,6 +17,18 @@ Every concept is standard OKF Markdown. Prefer **specific** types over umbrellas
 `Meeting` · `Experiment` · `Discovery` · `Assumption` · `Question` · `Feature` ·  
 `Requirement` · `Specification` · `Design` · `Release` · `CodeChange` · `Package` · `Risk` · `Acceptance`
 
+### SAC — code structure (source-level)
+`Module` · `CodeNamespace` · `Class` · `Interface` · `Enum` · `Method` · `Function` · `Field` · `Parameter`  
+
+(`Package` remains the **build** unit — npm/maven/gradle; `Module` is source/namespace inside it.)
+
+### SAC — diagrams (Mermaid + PlantUML in Markdown)
+`Wireframe` · `ArchitectureDiagram` · `ComponentDiagram` · `SequenceDiagram` · `ActivityDiagram` ·  
+`StateMachineDiagram` · `ClassDiagram` · `ErdDiagram` · `DeploymentDiagram` · `DataFlowDiagram` ·  
+`C4Diagram` · `Diagram` (umbrella)
+
+Listings live in fenced ```mermaid / ```plantuml blocks inside the concept file.
+
 ### SAC — runtime topology
 `System` · `Service` · `ApiContract` · `Endpoint` · `Package` · `BuildArtifact` ·  
 `ContainerImage` · `Runtime` · `ServerlessFunction` · `Job` · `CronSchedule` ·  

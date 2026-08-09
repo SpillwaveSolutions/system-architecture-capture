@@ -53,6 +53,21 @@ Host **skills and MCPs** connect and export; SAC ingests those exports and scans
 repo-local code/IaC. You do not need SAC to re-implement provider APIs.
 
 
+## Diagrams & code structure
+
+Capture **wireframes** (PlantUML salt) and **architecture / component / sequence / activity / state / class / ERD** diagrams as OKF concepts with Mermaid or PlantUML listings **inside** Markdown.
+
+Also reverse-engineer **Module**, **Class**, **Method**, and **Function** (build **Package** stays separate).
+
+```bash
+python3 scripts/sac_scan_diagrams.py --root .
+python3 scripts/sac_scan_code_structure.py --root .
+# full reverse-engineer includes diagrams + code by default
+python3 scripts/sac_orchestrate.py --scan-root . --system MySystem
+```
+
+Skill: `sac-capture-diagrams` · Command: `/sac-diagrams`
+
 ## When designing (use the second brain)
 
 After capture, **design against the graph** — new features, services, APIs, web/mobile apps, pipelines:

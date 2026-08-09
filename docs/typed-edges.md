@@ -60,3 +60,16 @@ Rules match PKC: body Markdown link + frontmatter `links[]`; never invent edges.
 | `tested_by` | TestSuite / ContractTest |
 | `backs_up` / `replicates_to` | DR / replicas |
 
+## Code structure & diagrams
+
+| rel | Meaning |
+|-----|---------|
+| `declared_in` | Class/Function lives in Module |
+| `has_class` / `has_method` / `has_function` | Structural containment |
+| `contains_module` | Package contains Module |
+| `extends` / `implements_interface` | Type hierarchy |
+| `calls_function` | Code call edge |
+| `visualizes` / `diagrams` / `illustrated_by` | Diagram about a concept |
+| `wireframes` | Wireframe for a UI surface |
+| `models` | Diagram models domain/types |
+

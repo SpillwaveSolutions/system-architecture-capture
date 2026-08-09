@@ -1,7 +1,7 @@
 {
-  "schema_version": "1.1.0",
+  "schema_version": "1.2.0",
   "name": "sac-okf-schema-pack",
-  "description": "Standard OKF schemas for the SAC second brain: system architecture information (OKF core + PKC + SAC topology, data plane, events, clients, platform, security, ops, domain)",
+  "description": "Standard OKF schemas for the SAC second brain: system architecture, code structure (modules/classes/methods/functions), and diagrams (Mermaid + PlantUML wireframes, architecture, component, activity, state, class, ERD)",
   "envelope": "okf-concept-envelope.json",
   "okf_version": "0.2",
   "types": [
@@ -169,9 +169,9 @@
     },
     {
       "type": "Module",
-      "directory": "packages",
-      "layer": "PKC/SAC",
-      "description": "Module (alias Package)"
+      "directory": "modules",
+      "layer": "SAC",
+      "description": "Source module within a package (language package/namespace)"
     },
     {
       "type": "Risk",
@@ -844,6 +844,126 @@
       "directory": "tests",
       "layer": "SAC",
       "description": "Contract / CDC test"
+    },
+    {
+      "type": "Class",
+      "directory": "classes",
+      "layer": "SAC",
+      "description": "Class / type definition"
+    },
+    {
+      "type": "Interface",
+      "directory": "classes",
+      "layer": "SAC",
+      "description": "Interface / protocol / trait"
+    },
+    {
+      "type": "Enum",
+      "directory": "classes",
+      "layer": "SAC",
+      "description": "Enumeration type"
+    },
+    {
+      "type": "Method",
+      "directory": "methods",
+      "layer": "SAC",
+      "description": "Method on a class/interface"
+    },
+    {
+      "type": "Function",
+      "directory": "functions",
+      "layer": "SAC",
+      "description": "Free function / procedure"
+    },
+    {
+      "type": "Field",
+      "directory": "fields",
+      "layer": "SAC",
+      "description": "Field / property / column-level attribute when modeled"
+    },
+    {
+      "type": "Parameter",
+      "directory": "methods",
+      "layer": "SAC",
+      "description": "Function/method parameter (optional detail)"
+    },
+    {
+      "type": "CodeNamespace",
+      "directory": "modules",
+      "layer": "SAC",
+      "description": "Language namespace / package path"
+    },
+    {
+      "type": "Diagram",
+      "directory": "diagrams",
+      "layer": "SAC",
+      "description": "Umbrella diagram concept (prefer specific kinds)"
+    },
+    {
+      "type": "Wireframe",
+      "directory": "diagrams",
+      "layer": "SAC",
+      "description": "UI wireframe (PlantUML salt / mockup)"
+    },
+    {
+      "type": "ArchitectureDiagram",
+      "directory": "diagrams",
+      "layer": "SAC",
+      "description": "System/context architecture diagram"
+    },
+    {
+      "type": "ComponentDiagram",
+      "directory": "diagrams",
+      "layer": "SAC",
+      "description": "Component diagram"
+    },
+    {
+      "type": "SequenceDiagram",
+      "directory": "diagrams",
+      "layer": "SAC",
+      "description": "Sequence / interaction diagram"
+    },
+    {
+      "type": "ActivityDiagram",
+      "directory": "diagrams",
+      "layer": "SAC",
+      "description": "Activity / flowchart diagram"
+    },
+    {
+      "type": "StateMachineDiagram",
+      "directory": "diagrams",
+      "layer": "SAC",
+      "description": "State machine diagram"
+    },
+    {
+      "type": "ClassDiagram",
+      "directory": "diagrams",
+      "layer": "SAC",
+      "description": "UML class diagram"
+    },
+    {
+      "type": "ErdDiagram",
+      "directory": "diagrams",
+      "layer": "SAC",
+      "description": "Entity-relationship diagram"
+    },
+    {
+      "type": "DeploymentDiagram",
+      "directory": "diagrams",
+      "layer": "SAC",
+      "description": "Deployment / topology diagram"
+    },
+    {
+      "type": "DataFlowDiagram",
+      "directory": "diagrams",
+      "layer": "SAC",
+      "description": "Data-flow diagram (DFD)"
+    },
+    {
+      "type": "C4Diagram",
+      "directory": "diagrams",
+      "layer": "SAC",
+      "description": "C4 model diagram (context/container/component)"
     }
   ],
   "relations": {
@@ -938,7 +1058,23 @@
       "complies_with",
       "tested_by",
       "journeys_through",
-      "owns_capability"
+      "owns_capability",
+      "contains_module",
+      "defines",
+      "has_class",
+      "has_method",
+      "has_function",
+      "has_field",
+      "implements_interface",
+      "extends",
+      "calls_function",
+      "diagrams",
+      "visualizes",
+      "models",
+      "wireframes",
+      "illustrated_by",
+      "source_of",
+      "declared_in"
     ],
     "all": [
       "depends_on",
@@ -1027,7 +1163,23 @@
       "complies_with",
       "tested_by",
       "journeys_through",
-      "owns_capability"
+      "owns_capability",
+      "contains_module",
+      "defines",
+      "has_class",
+      "has_method",
+      "has_function",
+      "has_field",
+      "implements_interface",
+      "extends",
+      "calls_function",
+      "diagrams",
+      "visualizes",
+      "models",
+      "wireframes",
+      "illustrated_by",
+      "source_of",
+      "declared_in"
     ]
   },
   "bundle_root_fields": {

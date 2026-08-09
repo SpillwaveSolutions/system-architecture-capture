@@ -1,3 +1,9 @@
+## 0.2.0 — diagrams & code structure
+
+- Mermaid + PlantUML diagram concepts (wireframe through ERD/C4)
+- Module / Class / Method / Function reverse-engineering
+- Scanners + skill sac-capture-diagrams
+
 # Changelog
 
 ## 0.1.0 — 2026-08-09

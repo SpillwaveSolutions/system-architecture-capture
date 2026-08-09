@@ -51,6 +51,9 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/sac_search.py" --bundle knowledge "<domai
    - **Ownership** and **GlossaryTerm** for naming and team?
 
 5. **Propose the design** grounded in the graph:
+   - Author or update **diagrams** (sequence, component, ERD, wireframes) as Mermaid/PlantUML listings in diagram concepts.
+   - Name new **Module / Class / Function** concepts when the design adds code shape.
+
    - Prefer extend/reuse edges (`calls`, `exposes_api`, `depends_on_package`) over greenfield silos.
    - Call out blast radius (what breaks if the new thing fails or the shared API changes).
    - List **new OKF concepts** to author after the design is accepted (Service, ApiContract, …).

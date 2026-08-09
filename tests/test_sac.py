@@ -157,6 +157,32 @@ class TestIngest(unittest.TestCase):
             self.assertGreater(t["created"] + t["updated"], 0)
 
 
+class TestDiagramsAndCode(unittest.TestCase):
+    def test_scan_diagrams_from_sample(self):
+        from sac_scan_diagrams import scan_diagrams
+        # sample-knowledge has mermaid fences
+        found = scan_diagrams(ROOT / "sample-knowledge")
+        self.assertGreaterEqual(len(found), 5)
+        formats = {d["format"] for d in found}
+        self.assertTrue("mermaid" in formats or "plantuml" in formats)
+        kinds = {d["kind"] for d in found}
+        self.assertTrue(any(k.endswith("Diagram") or k == "Wireframe" for k in kinds))
+
+    def test_scan_code_structure_on_scripts(self):
+        from sac_scan_code_structure import scan_code_structure
+        data = scan_code_structure(ROOT / "scripts")
+        self.assertGreater(len(data["modules"]), 0)
+        self.assertGreater(len(data["functions"]), 0)
+
+    def test_types_include_code_and_diagrams(self):
+        from sac_validate import load_schema_registry
+        types = {t["type"] for t in load_schema_registry()["types"]}
+        for name in ("Module", "Class", "Method", "Function", "Wireframe",
+                     "ArchitectureDiagram", "ClassDiagram", "ErdDiagram",
+                     "SequenceDiagram", "StateMachineDiagram"):
+            self.assertIn(name, types)
+
+
 class TestSchemaPack(unittest.TestCase):
     def test_registry_loads(self):
         from sac_validate import load_schema_registry

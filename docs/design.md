@@ -71,3 +71,16 @@ SAC is dual-mode:
 Design recommendations must cite existing concepts and edges; inventing a new
 service without checking the graph is a process failure.
 
+## Diagrams & code structure
+
+The second brain stores **diagrams as Markdown concepts** with embedded Mermaid or
+PlantUML listings (wireframes via PlantUML salt; architecture, component, sequence,
+activity, state machine, class, ERD, deployment, C4, data-flow).
+
+Source-level **Module / Class / Method / Function** concepts complement build-level
+**Package** so design-time packs can reason about both deployables and code shape.
+
+- Scan: `sac_scan_diagrams.py`, `sac_scan_code_structure.py`
+- Capture: included in default orchestrate domains `diagrams` + `code`
+- Skill: `sac-capture-diagrams`
+

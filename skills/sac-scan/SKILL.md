@@ -11,3 +11,5 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/sac_scan.py" --root <path> --domains pack
 ```
 
 Individual scanners: `sac_scan_packages.py`, `sac_scan_containers.py`, `sac_scan_iac.py`, `sac_scan_k8s.py`, `sac_scan_cicd.py`, `sac_scan_identity.py`.
+
+Default scan domains include `diagrams` (Mermaid/PlantUML) and `code` (Module/Class/Method/Function).

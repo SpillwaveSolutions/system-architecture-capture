@@ -37,3 +37,5 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/sac_doctor.py" --repo .
 ```
 
 7. Report topology summary + knowledge paths.
+
+Default scan domains include `diagrams` (Mermaid/PlantUML) and `code` (Module/Class/Method/Function).
