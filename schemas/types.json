@@ -1,7 +1,7 @@
 {
-  "schema_version": "1.0.0",
+  "schema_version": "1.1.0",
   "name": "sac-okf-schema-pack",
-  "description": "Standard OKF schemas for the SAC second brain: system architecture information (OKF core + PKC + SAC topology types)",
+  "description": "Standard OKF schemas for the SAC second brain: system architecture information (OKF core + PKC + SAC topology, data plane, events, clients, platform, security, ops, domain)",
   "envelope": "okf-concept-envelope.json",
   "okf_version": "0.2",
   "types": [
@@ -243,7 +243,7 @@
       "type": "DataStore",
       "directory": "datastores",
       "layer": "SAC",
-      "description": "Database / cache / search"
+      "description": "Umbrella data store (prefer Database/Cache/ObjectStorage/SearchIndex when known)"
     },
     {
       "type": "MessageQueue",
@@ -400,6 +400,450 @@
       "directory": "ownership",
       "layer": "SAC",
       "description": "Team ownership"
+    },
+    {
+      "type": "Database",
+      "directory": "datastores",
+      "layer": "SAC",
+      "description": "Primary database (SQL/NoSQL/graph)"
+    },
+    {
+      "type": "Cache",
+      "directory": "caches",
+      "layer": "SAC",
+      "description": "Cache tier (Redis, Memcached, edge cache)"
+    },
+    {
+      "type": "ObjectStorage",
+      "directory": "storage",
+      "layer": "SAC",
+      "description": "Object/blob storage"
+    },
+    {
+      "type": "SearchIndex",
+      "directory": "search",
+      "layer": "SAC",
+      "description": "Search index cluster/index"
+    },
+    {
+      "type": "DataWarehouse",
+      "directory": "analytics",
+      "layer": "SAC",
+      "description": "Warehouse / analytics store"
+    },
+    {
+      "type": "DataLake",
+      "directory": "analytics",
+      "layer": "SAC",
+      "description": "Data lake / lakehouse"
+    },
+    {
+      "type": "VectorStore",
+      "directory": "datastores",
+      "layer": "SAC",
+      "description": "Vector / embedding store"
+    },
+    {
+      "type": "FileSystem",
+      "directory": "storage",
+      "layer": "SAC",
+      "description": "Shared/network filesystem"
+    },
+    {
+      "type": "SchemaRegistry",
+      "directory": "messaging",
+      "layer": "SAC",
+      "description": "Event/schema registry"
+    },
+    {
+      "type": "Migration",
+      "directory": "migrations",
+      "layer": "SAC",
+      "description": "Schema or data migration set"
+    },
+    {
+      "type": "Event",
+      "directory": "events",
+      "layer": "SAC",
+      "description": "Named domain or integration event"
+    },
+    {
+      "type": "EventSchema",
+      "directory": "events",
+      "layer": "SAC",
+      "description": "Event payload contract"
+    },
+    {
+      "type": "EventStream",
+      "directory": "messaging",
+      "layer": "SAC",
+      "description": "Durable event stream"
+    },
+    {
+      "type": "Subscription",
+      "directory": "messaging",
+      "layer": "SAC",
+      "description": "Consumer subscription / group"
+    },
+    {
+      "type": "DeadLetterQueue",
+      "directory": "messaging",
+      "layer": "SAC",
+      "description": "Dead-letter / poison queue"
+    },
+    {
+      "type": "Saga",
+      "directory": "workflows",
+      "layer": "SAC",
+      "description": "Multi-step distributed process"
+    },
+    {
+      "type": "Job",
+      "directory": "jobs",
+      "layer": "SAC",
+      "description": "Batch, scheduled, or worker job"
+    },
+    {
+      "type": "CronSchedule",
+      "directory": "jobs",
+      "layer": "SAC",
+      "description": "Time-based schedule"
+    },
+    {
+      "type": "Webhook",
+      "directory": "apis",
+      "layer": "SAC",
+      "description": "HTTP callback contract"
+    },
+    {
+      "type": "WebApp",
+      "directory": "clients",
+      "layer": "SAC",
+      "description": "Web application (SPA/MPA/SSR)"
+    },
+    {
+      "type": "MobileApp",
+      "directory": "clients",
+      "layer": "SAC",
+      "description": "Mobile application"
+    },
+    {
+      "type": "DesktopApp",
+      "directory": "clients",
+      "layer": "SAC",
+      "description": "Desktop application"
+    },
+    {
+      "type": "AdminApp",
+      "directory": "clients",
+      "layer": "SAC",
+      "description": "Admin / back-office application"
+    },
+    {
+      "type": "Bff",
+      "directory": "services",
+      "layer": "SAC",
+      "description": "Backend-for-frontend"
+    },
+    {
+      "type": "ApiGateway",
+      "directory": "networks",
+      "layer": "SAC",
+      "description": "API gateway at the edge"
+    },
+    {
+      "type": "GraphQlSchema",
+      "directory": "apis",
+      "layer": "SAC",
+      "description": "GraphQL schema surface"
+    },
+    {
+      "type": "Sdk",
+      "directory": "packages",
+      "layer": "SAC",
+      "description": "Published client SDK"
+    },
+    {
+      "type": "Cli",
+      "directory": "packages",
+      "layer": "SAC",
+      "description": "CLI tool"
+    },
+    {
+      "type": "Repository",
+      "directory": "repositories",
+      "layer": "SAC",
+      "description": "Source git repository"
+    },
+    {
+      "type": "Monorepo",
+      "directory": "repositories",
+      "layer": "SAC",
+      "description": "Monorepo / workspace root"
+    },
+    {
+      "type": "ArtifactRegistry",
+      "directory": "registries",
+      "layer": "SAC",
+      "description": "Package/container registry"
+    },
+    {
+      "type": "Cluster",
+      "directory": "clusters",
+      "layer": "SAC",
+      "description": "Orchestration cluster (K8s/ECS/\u2026)"
+    },
+    {
+      "type": "Namespace",
+      "directory": "clusters",
+      "layer": "SAC",
+      "description": "Namespace / project isolation"
+    },
+    {
+      "type": "HelmChart",
+      "directory": "infrastructure",
+      "layer": "SAC",
+      "description": "Helm chart"
+    },
+    {
+      "type": "TerraformModule",
+      "directory": "infrastructure",
+      "layer": "SAC",
+      "description": "Reusable Terraform module"
+    },
+    {
+      "type": "CloudAccount",
+      "directory": "cloud",
+      "layer": "SAC",
+      "description": "Cloud account / project / subscription"
+    },
+    {
+      "type": "Region",
+      "directory": "cloud",
+      "layer": "SAC",
+      "description": "Cloud region"
+    },
+    {
+      "type": "NodePool",
+      "directory": "clusters",
+      "layer": "SAC",
+      "description": "Compute node pool"
+    },
+    {
+      "type": "Volume",
+      "directory": "storage",
+      "layer": "SAC",
+      "description": "Persistent volume / disk"
+    },
+    {
+      "type": "DnsZone",
+      "directory": "networks",
+      "layer": "SAC",
+      "description": "DNS zone"
+    },
+    {
+      "type": "Cdn",
+      "directory": "networks",
+      "layer": "SAC",
+      "description": "Content delivery network"
+    },
+    {
+      "type": "Certificate",
+      "directory": "security",
+      "layer": "SAC",
+      "description": "TLS certificate"
+    },
+    {
+      "type": "Waf",
+      "directory": "security",
+      "layer": "SAC",
+      "description": "Web application firewall"
+    },
+    {
+      "type": "PrivateLink",
+      "directory": "networks",
+      "layer": "SAC",
+      "description": "Private service link"
+    },
+    {
+      "type": "Vpn",
+      "directory": "networks",
+      "layer": "SAC",
+      "description": "VPN connectivity"
+    },
+    {
+      "type": "NatGateway",
+      "directory": "networks",
+      "layer": "SAC",
+      "description": "NAT egress gateway"
+    },
+    {
+      "type": "ServiceAccount",
+      "directory": "iam",
+      "layer": "SAC",
+      "description": "Workload service account"
+    },
+    {
+      "type": "EncryptionKey",
+      "directory": "security",
+      "layer": "SAC",
+      "description": "KMS / encryption key"
+    },
+    {
+      "type": "PolicyDocument",
+      "directory": "security",
+      "layer": "SAC",
+      "description": "Policy-as-code document"
+    },
+    {
+      "type": "ComplianceControl",
+      "directory": "compliance",
+      "layer": "SAC",
+      "description": "Compliance control mapping"
+    },
+    {
+      "type": "AuditTrail",
+      "directory": "security",
+      "layer": "SAC",
+      "description": "Audit logging configuration"
+    },
+    {
+      "type": "Permission",
+      "directory": "iam",
+      "layer": "SAC",
+      "description": "Fine-grained permission unit"
+    },
+    {
+      "type": "Slo",
+      "directory": "observability",
+      "layer": "SAC",
+      "description": "Service level objective"
+    },
+    {
+      "type": "Sla",
+      "directory": "observability",
+      "layer": "SAC",
+      "description": "Service level agreement"
+    },
+    {
+      "type": "Sli",
+      "directory": "observability",
+      "layer": "SAC",
+      "description": "Service level indicator"
+    },
+    {
+      "type": "AlertRule",
+      "directory": "observability",
+      "layer": "SAC",
+      "description": "Alerting rule"
+    },
+    {
+      "type": "Dashboard",
+      "directory": "observability",
+      "layer": "SAC",
+      "description": "Observability dashboard"
+    },
+    {
+      "type": "Incident",
+      "directory": "incidents",
+      "layer": "SAC",
+      "description": "Incident record"
+    },
+    {
+      "type": "BackupPolicy",
+      "directory": "storage",
+      "layer": "SAC",
+      "description": "Backup / retention policy"
+    },
+    {
+      "type": "DisasterRecoveryPlan",
+      "directory": "designs",
+      "layer": "SAC",
+      "description": "DR plan"
+    },
+    {
+      "type": "Domain",
+      "directory": "domains",
+      "layer": "SAC",
+      "description": "Business domain"
+    },
+    {
+      "type": "BoundedContext",
+      "directory": "domains",
+      "layer": "SAC",
+      "description": "DDD bounded context"
+    },
+    {
+      "type": "BusinessCapability",
+      "directory": "domains",
+      "layer": "SAC",
+      "description": "Business capability"
+    },
+    {
+      "type": "Product",
+      "directory": "products",
+      "layer": "SAC",
+      "description": "Product offering"
+    },
+    {
+      "type": "Channel",
+      "directory": "channels",
+      "layer": "SAC",
+      "description": "Delivery channel (web/mobile/partner)"
+    },
+    {
+      "type": "Actor",
+      "directory": "actors",
+      "layer": "SAC",
+      "description": "Human or system actor"
+    },
+    {
+      "type": "UserJourney",
+      "directory": "journeys",
+      "layer": "SAC",
+      "description": "Cross-service user journey"
+    },
+    {
+      "type": "Integration",
+      "directory": "integrations",
+      "layer": "SAC",
+      "description": "External integration"
+    },
+    {
+      "type": "ExternalSystem",
+      "directory": "integrations",
+      "layer": "SAC",
+      "description": "Third-party / SaaS system"
+    },
+    {
+      "type": "ConfigMap",
+      "directory": "config",
+      "layer": "SAC",
+      "description": "Configuration map / blob"
+    },
+    {
+      "type": "RateLimit",
+      "directory": "config",
+      "layer": "SAC",
+      "description": "Rate limit policy"
+    },
+    {
+      "type": "Quota",
+      "directory": "config",
+      "layer": "SAC",
+      "description": "Resource quota"
+    },
+    {
+      "type": "TestSuite",
+      "directory": "tests",
+      "layer": "SAC",
+      "description": "Automated test suite"
+    },
+    {
+      "type": "ContractTest",
+      "directory": "tests",
+      "layer": "SAC",
+      "description": "Contract / CDC test"
     }
   ],
   "relations": {
@@ -461,7 +905,40 @@
       "flagged_by",
       "owned_by",
       "part_of",
-      "instantiates"
+      "instantiates",
+      "caches",
+      "indexes",
+      "stores_in",
+      "streams_to",
+      "emits",
+      "consumes_event",
+      "schedules",
+      "backs_up",
+      "replicates_to",
+      "integrates_with",
+      "exposes_ui",
+      "served_by_cdn",
+      "secured_by_waf",
+      "measured_by",
+      "alerts_on",
+      "belongs_to_domain",
+      "in_context",
+      "for_channel",
+      "invokes",
+      "migrates",
+      "registers_schema",
+      "dlq_for",
+      "triggers",
+      "subscribes",
+      "publishes_event",
+      "backed_by",
+      "served_by",
+      "trusts",
+      "encrypts_with",
+      "complies_with",
+      "tested_by",
+      "journeys_through",
+      "owns_capability"
     ],
     "all": [
       "depends_on",
@@ -517,7 +994,40 @@
       "flagged_by",
       "owned_by",
       "part_of",
-      "instantiates"
+      "instantiates",
+      "caches",
+      "indexes",
+      "stores_in",
+      "streams_to",
+      "emits",
+      "consumes_event",
+      "schedules",
+      "backs_up",
+      "replicates_to",
+      "integrates_with",
+      "exposes_ui",
+      "served_by_cdn",
+      "secured_by_waf",
+      "measured_by",
+      "alerts_on",
+      "belongs_to_domain",
+      "in_context",
+      "for_channel",
+      "invokes",
+      "migrates",
+      "registers_schema",
+      "dlq_for",
+      "triggers",
+      "subscribes",
+      "publishes_event",
+      "backed_by",
+      "served_by",
+      "trusts",
+      "encrypts_with",
+      "complies_with",
+      "tested_by",
+      "journeys_through",
+      "owns_capability"
     ]
   },
   "bundle_root_fields": {

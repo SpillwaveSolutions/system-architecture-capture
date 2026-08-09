@@ -45,7 +45,7 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/sac_search.py" --bundle knowledge "<domai
 4. **Answer before inventing** (use pack + concepts):
    - Which **System / Service / Package** already owns this domain?
    - What **ApiContracts** exist? Extend vs new surface?
-   - What **DataStores / Topics** would be touched?
+   - What **Database / Cache / ObjectStorage / SearchIndex / Event** surfaces would be touched?
    - Auth: existing **IdentityProvider / IamRole** patterns?
    - Deploy: which **Environment / Pipeline / InfrastructureStack**?
    - **Ownership** and **GlossaryTerm** for naming and team?

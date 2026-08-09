@@ -163,6 +163,10 @@ class TestSchemaPack(unittest.TestCase):
         reg = load_schema_registry()
         types = {x["type"] for x in reg["types"]}
         self.assertIn("Service", types)
+        self.assertIn("Database", types)
+        self.assertIn("Cache", types)
+        self.assertIn("Event", types)
+        self.assertIn("WebApp", types)
         self.assertIn("DecisionRecord", types)
         self.assertIn("TicketLink", types)
         self.assertIn("calls", reg["relations"]["all"])

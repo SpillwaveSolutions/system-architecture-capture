@@ -176,7 +176,7 @@ SAC  ← reverse-engineered runtime & infrastructure topology  (this repo)
 
 ## Docs
 
-- [PRD](./docs/prd.md) · [Design](./docs/design.md) · [OKF schemas](./docs/okf-schemas.md) · [Concept types](./docs/concept-types.md) · [Typed edges](./docs/typed-edges.md)
+- [PRD](./docs/prd.md) · [Design](./docs/design.md) · [OKF schemas](./docs/okf-schemas.md) · [Concept types](./docs/concept-types.md) · [Gaps](./docs/concept-gaps.md) · [Typed edges](./docs/typed-edges.md)
 - Machine registry: [`schemas/types.json`](./schemas/types.json)
 
 ## License

@@ -31,3 +31,32 @@ Inherits all PKC/OKF relations, plus architecture relations:
 | `instantiates` | Instance of abstract type |
 
 Rules match PKC: body Markdown link + frontmatter `links[]`; never invent edges.
+
+## Data, events, clients, platform (SAC expansion)
+
+| rel | Meaning |
+|-----|---------|
+| `caches` | Service uses Cache |
+| `indexes` | Writes/reads SearchIndex |
+| `stores_in` | Persists in Database/ObjectStorage/… |
+| `backed_by` | Logical store backed by physical resource |
+| `emits` / `publishes_event` | Produces Event |
+| `consumes_event` / `subscribes` | Consumes Event / Subscription |
+| `streams_to` | Data/event stream target |
+| `registers_schema` | EventSchema in SchemaRegistry |
+| `dlq_for` | DeadLetterQueue for a queue/subscription |
+| `schedules` / `triggers` | Cron/Job triggers work |
+| `migrates` | Migration applies to Database |
+| `exposes_ui` | Service/Bff exposes WebApp/MobileApp |
+| `served_by` / `served_by_cdn` | Edge delivery |
+| `secured_by_waf` | Protected by WAF |
+| `integrates_with` | ExternalSystem / Integration |
+| `belongs_to_domain` / `in_context` | Domain / BoundedContext |
+| `for_channel` | Product channel |
+| `journeys_through` | UserJourney touches services |
+| `measured_by` / `alerts_on` | SLO/SLI/AlertRule |
+| `encrypts_with` / `trusts` | Keys / trust |
+| `complies_with` | ComplianceControl |
+| `tested_by` | TestSuite / ContractTest |
+| `backs_up` / `replicates_to` | DR / replicas |
+

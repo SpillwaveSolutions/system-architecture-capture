@@ -36,7 +36,7 @@ Body must include absolute Markdown links for humans; `links[].rel` enriches the
 
 ### SAC architecture (second-brain system topology)
 
-`System` · `Service` · `ApiContract` · `Package` · `ContainerImage` · `ServerlessFunction` · `DataStore` · `MessageQueue` · `IdentityProvider` · `IamRole` · `Vpc` / `Subnet` / `SecurityGroup` / `LoadBalancer` · `ServiceMesh` · `Pipeline` · `Deployment` · `Environment` · `InfrastructureStack` · `DataFlow` · `ControlFlow` · `BlastRadius` · `GlossaryTerm` · `Ownership` · …
+See [concept-types.md](./concept-types.md) — includes **Database**, **Cache**, **Event** / **EventSchema**, **WebApp** / **MobileApp**, platform, security, SLO, domain types (140 types in `schemas/types.json` v1.1).
 
 ## Relations
 

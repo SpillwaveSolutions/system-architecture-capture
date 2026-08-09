@@ -65,7 +65,7 @@ def mermaid(graph: dict[str, Any], *, max_nodes: int = 40) -> str:
         shape_l, shape_r = "[", "]"
         if t in ("Service", "System"):
             shape_l, shape_r = "([", "])"
-        elif t in ("DataStore", "MessageQueue"):
+        elif t in ("Database", "Cache", "ObjectStorage", "SearchIndex", "DataWarehouse", "DataLake", "VectorStore", "DataStore", "MessageQueue", "Event", "EventStream", "Topic"):
             shape_l, shape_r = "[(", ")]"
         elif t in ("InfrastructureStack", "Pipeline"):
             shape_l, shape_r = "{{", "}}"

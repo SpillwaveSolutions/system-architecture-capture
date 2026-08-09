@@ -1,35 +1,57 @@
-# SAC Concept Types
+# Concept types (architecture second brain)
 
-## Architecture types
+Authoritative machine registry: [`schemas/types.json`](../schemas/types.json)  
+Gap analysis & rationale: [`concept-gaps.md`](./concept-gaps.md)  
+Envelope: [`schemas/okf-concept-envelope.json`](../schemas/okf-concept-envelope.json)
 
-| Type | Directory | Role |
-|------|-----------|------|
-| System | systems/ | Top-level system boundary |
-| Service | services/ | Deployable runtime unit |
-| ApiContract / Endpoint | apis/ | Interface contracts |
-| Package / Module | packages/ | Build unit (npm/maven/gradle/go/…) |
-| BuildArtifact | build-artifacts/ | Produced artifact |
-| ContainerImage | containers/ | Image definition |
-| Runtime | runtimes/ | Docker/containerd/CRI-O hints |
-| ServerlessFunction | serverless/ | Lambda/Cloud Functions/Azure Functions |
-| DataStore | datastores/ | DB/cache/search |
-| MessageQueue / Topic | messaging/ | Async messaging |
-| IdentityProvider / AuthConfig | identity/ | SSO/OAuth |
-| IamRole / IamPolicy | iam/ | Identity & access |
-| Vpc / Subnet / SecurityGroup / LoadBalancer / Network | networks/ | Networking |
-| ServiceMesh | meshes/ | Mesh |
-| SecretStore | secrets/ | Secrets management |
-| Pipeline / Workflow | pipelines/ | CI/CD |
-| Deployment | deployments/ | Deployed release unit |
-| Environment | environments/ | dev/stage/prod |
-| FeatureFlag | feature-flags/ | Flags |
-| Metric / TraceSource / LogSource | observability/ | Telemetry |
-| ConfigSource | config/ | Configuration |
-| InfrastructureStack | infrastructure/ | CFN/TF/CDK/Pulumi/Helm/Kustomize |
-| DataFlow | dataflows/ | Data path map |
-| ControlFlow | controlflows/ | Control/deploy path map |
-| BlastRadius | blast-radius/ | Impact analysis |
-| GlossaryTerm | glossary/ | Business/tech terms |
-| Ownership | ownership/ | Team ownership |
+Every concept is standard OKF Markdown. Prefer **specific** types over umbrellas
+(`Database` not bare `DataStore` when you know it is a DB; `Cache` for Redis; `Event` + `EventSchema` for async contracts).
 
-Plus full PKC types (Meeting, DecisionRecord, Feature, …).
+## Layers
+
+### OKF core
+`Dataset` · `Table` · `Metric` · `Playbook` · `Runbook` · `API` · `Reference` ·  
+`AgentNode` · `Workflow` · `Harness` · `DecisionRecord` · `SharedState` · `ToolCapability` · `TicketLink`
+
+### PKC project memory
+`Meeting` · `Experiment` · `Discovery` · `Assumption` · `Question` · `Feature` ·  
+`Requirement` · `Specification` · `Design` · `Release` · `CodeChange` · `Package` · `Risk` · `Acceptance`
+
+### SAC — runtime topology
+`System` · `Service` · `ApiContract` · `Endpoint` · `Package` · `BuildArtifact` ·  
+`ContainerImage` · `Runtime` · `ServerlessFunction` · `Job` · `CronSchedule` ·  
+`WebApp` · `MobileApp` · `DesktopApp` · `AdminApp` · `Bff` · `Sdk` · `Cli` · `ApiGateway` · `GraphQlSchema`
+
+### SAC — data plane (was under-specified)
+`Database` · `Cache` · `ObjectStorage` · `SearchIndex` · `DataWarehouse` · `DataLake` ·  
+`VectorStore` · `FileSystem` · `DataStore` (umbrella only) · `Migration` · `SchemaRegistry` ·  
+`BackupPolicy` · `Volume`
+
+### SAC — events & async
+`Event` · `EventSchema` · `EventStream` · `Topic` · `MessageQueue` · `Subscription` ·  
+`DeadLetterQueue` · `Webhook` · `Saga`
+
+### SAC — identity, security, network
+`IdentityProvider` · `AuthConfig` · `IamRole` · `IamPolicy` · `ServiceAccount` · `Permission` ·  
+`SecretStore` · `EncryptionKey` · `Certificate` · `PolicyDocument` · `Waf` · `AuditTrail` ·  
+`ComplianceControl` · `Vpc` · `Subnet` · `SecurityGroup` · `LoadBalancer` · `DnsZone` ·  
+`Cdn` · `PrivateLink` · `Vpn` · `NatGateway` · `ServiceMesh` · `Network`
+
+### SAC — platform & delivery
+`Repository` · `Monorepo` · `ArtifactRegistry` · `Cluster` · `Namespace` · `NodePool` ·  
+`CloudAccount` · `Region` · `HelmChart` · `TerraformModule` · `InfrastructureStack` ·  
+`Pipeline` · `Deployment` · `Environment` · `FeatureFlag` · `ConfigSource` · `ConfigMap` ·  
+`RateLimit` · `Quota`
+
+### SAC — reliability & domain
+`Slo` · `Sla` · `Sli` · `AlertRule` · `Dashboard` · `TraceSource` · `LogSource` · `Incident` ·  
+`DisasterRecoveryPlan` · `Domain` · `BoundedContext` · `BusinessCapability` · `Product` ·  
+`Channel` · `Actor` · `UserJourney` · `Integration` · `ExternalSystem` ·  
+`TestSuite` · `ContractTest` · `DataFlow` · `ControlFlow` · `BlastRadius` ·  
+`GlossaryTerm` · `Ownership`
+
+## Design rule
+
+When designing new features/services/APIs/apps, pack from these types first:
+surfaces (`WebApp`/`MobileApp`/`Service`/`ApiContract`), data (`Database`/`Cache`/`Event`),
+identity, deploy (`Environment`/`Pipeline`/`Cluster`), ownership, blast radius.
