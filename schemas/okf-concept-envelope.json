@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spillwave.solutions/schemas/okf-concept-envelope.json",
+  "title": "OKF Concept Envelope",
+  "description": "Universal frontmatter required of every OKF concept file (okf-plugin / PKC / SAC).",
+  "type": "object",
+  "required": ["type", "title"],
+  "properties": {
+    "type": {
+      "type": "string",
+      "description": "Concept type from the OKF/PKC/SAC type registry"
+    },
+    "title": { "type": "string", "minLength": 1 },
+    "description": { "type": "string" },
+    "timestamp": {
+      "type": "string",
+      "description": "ISO-8601 creation/update time"
+    },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "status": {
+      "type": "string",
+      "description": "Lifecycle: active, draft, deprecated, proposed, accepted, …"
+    },
+    "verified": {
+      "type": "boolean",
+      "description": "Human or CI confirmed correctness"
+    },
+    "truth_state": {
+      "type": "string",
+      "enum": ["current", "snapshot", "superseded", "archived"],
+      "description": "PKC/OKF truth barrier for materialization"
+    },
+    "generated": {
+      "type": "boolean",
+      "description": "true if agent/scanner authored"
+    },
+    "sources": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Upstream concept paths or URLs"
+    },
+    "owners": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "stale_after": { "type": "string" },
+    "wiki_key": { "type": "string" },
+    "source": { "type": "string" },
+    "source_path": { "type": "string" },
+    "links": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["target"],
+        "properties": {
+          "target": {
+            "type": "string",
+            "description": "Absolute in-bundle path, e.g. /services/order-service.md"
+          },
+          "rel": {
+            "type": "string",
+            "description": "Typed relation from the relation registry"
+          }
+        }
+      }
+    }
+  },
+  "additionalProperties": true
+}

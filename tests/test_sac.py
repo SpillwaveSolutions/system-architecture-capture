@@ -157,6 +157,22 @@ class TestIngest(unittest.TestCase):
             self.assertGreater(t["created"] + t["updated"], 0)
 
 
+class TestSchemaPack(unittest.TestCase):
+    def test_registry_loads(self):
+        from sac_validate import load_schema_registry
+        reg = load_schema_registry()
+        types = {x["type"] for x in reg["types"]}
+        self.assertIn("Service", types)
+        self.assertIn("DecisionRecord", types)
+        self.assertIn("TicketLink", types)
+        self.assertIn("calls", reg["relations"]["all"])
+
+    def test_sample_schema_validate(self):
+        v = validate_bundle(SAMPLE, schema=True)
+        self.assertEqual(v["errors"], 0)
+        self.assertGreaterEqual(v["node_count"], 20)
+
+
 class TestWriteConcept(unittest.TestCase):
     def test_idempotent(self):
         with tempfile.TemporaryDirectory() as td:

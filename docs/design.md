@@ -50,3 +50,13 @@ When an agent needs live data: call the host MCP/skill first, then pass the
 export path into `sac_ingest_wiki.py` / `sac_ingest_tickets.py` / orchestrator
 flags (`--wiki`, `--tickets`).
 
+## OKF schema pack
+
+Second-brain content is **not free-form**. Types and relations live in:
+
+- `schemas/okf-concept-envelope.json` — required/optional frontmatter
+- `schemas/types.json` — OKF + PKC + SAC type and relation registry
+- `docs/okf-schemas.md` — human guide
+
+`sac_validate.py --schema` enforces the pack. Prefer OKF-native types when they fit (`API`, `Metric`, `DecisionRecord`, `TicketLink`); use SAC types for topology.
+

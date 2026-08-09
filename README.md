@@ -15,7 +15,7 @@ Works as a **Claude Code**, **Grok Build**, **Codex**, and **OpenCode** plugin.
 
 ## Why SAC
 
-**Goal:** a living **second brain** about the repos (or monorepo) you point it at — not a one-shot report.
+**Goal:** a living **second brain** for project information about the repos (or monorepo) you point it at — stored as a **standard set of OKF schemas** (plus PKC + SAC architecture types), not a one-shot report or proprietary DB.
 
 PKC captures *why* (meetings, experiments, decisions). SAC captures *what is actually running*:
 
@@ -140,7 +140,8 @@ SAC  ← reverse-engineered runtime & infrastructure topology  (this repo)
 
 ## Docs
 
-- [PRD](./docs/prd.md) · [Design](./docs/design.md) · [Concept types](./docs/concept-types.md) · [Typed edges](./docs/typed-edges.md)
+- [PRD](./docs/prd.md) · [Design](./docs/design.md) · [OKF schemas](./docs/okf-schemas.md) · [Concept types](./docs/concept-types.md) · [Typed edges](./docs/typed-edges.md)
+- Machine registry: [`schemas/types.json`](./schemas/types.json)
 
 ## License
 

@@ -1,0 +1,531 @@
+{
+  "schema_version": "1.0.0",
+  "name": "sac-okf-schema-pack",
+  "description": "Standard OKF schemas for a project second brain (OKF core + PKC + SAC architecture)",
+  "envelope": "okf-concept-envelope.json",
+  "okf_version": "0.2",
+  "types": [
+    {
+      "type": "Dataset",
+      "directory": "knowledge",
+      "layer": "OKF knowledge",
+      "description": "Structured dataset"
+    },
+    {
+      "type": "Table",
+      "directory": "knowledge",
+      "layer": "OKF knowledge",
+      "description": "Table / relation"
+    },
+    {
+      "type": "Metric",
+      "directory": "observability",
+      "layer": "OKF knowledge",
+      "description": "Metric or KPI"
+    },
+    {
+      "type": "Playbook",
+      "directory": "designs",
+      "layer": "OKF knowledge",
+      "description": "Operational playbook"
+    },
+    {
+      "type": "Runbook",
+      "directory": "designs",
+      "layer": "OKF knowledge",
+      "description": "Incident/ops runbook"
+    },
+    {
+      "type": "API",
+      "directory": "apis",
+      "layer": "OKF knowledge",
+      "description": "API surface (alias of ApiContract)"
+    },
+    {
+      "type": "Reference",
+      "directory": "designs",
+      "layer": "OKF knowledge",
+      "description": "General reference node"
+    },
+    {
+      "type": "AgentNode",
+      "directory": "agents",
+      "layer": "OKF harness",
+      "description": "Agent in harness graph"
+    },
+    {
+      "type": "Workflow",
+      "directory": "pipelines",
+      "layer": "OKF harness",
+      "description": "Workflow / process"
+    },
+    {
+      "type": "Harness",
+      "directory": "systems",
+      "layer": "OKF harness",
+      "description": "Agent harness"
+    },
+    {
+      "type": "DecisionRecord",
+      "directory": "decisions",
+      "layer": "OKF harness",
+      "description": "ADR / decision"
+    },
+    {
+      "type": "SharedState",
+      "directory": "config",
+      "layer": "OKF harness",
+      "description": "Shared runtime/session state"
+    },
+    {
+      "type": "ToolCapability",
+      "directory": "packages",
+      "layer": "OKF harness",
+      "description": "Tool or capability node"
+    },
+    {
+      "type": "TicketLink",
+      "directory": "tickets",
+      "layer": "OKF harness",
+      "description": "Link to external ticket/worklog"
+    },
+    {
+      "type": "Catalog",
+      "directory": null,
+      "layer": "OKF core",
+      "description": "Directory index"
+    },
+    {
+      "type": "Meeting",
+      "directory": "meetings",
+      "layer": "PKC",
+      "description": "Captured meeting"
+    },
+    {
+      "type": "Experiment",
+      "directory": "experiments",
+      "layer": "PKC",
+      "description": "Spike / experiment"
+    },
+    {
+      "type": "Discovery",
+      "directory": "discoveries",
+      "layer": "PKC",
+      "description": "Research finding"
+    },
+    {
+      "type": "Assumption",
+      "directory": "assumptions",
+      "layer": "PKC",
+      "description": "Working hypothesis"
+    },
+    {
+      "type": "Question",
+      "directory": "questions",
+      "layer": "PKC",
+      "description": "Open question"
+    },
+    {
+      "type": "Feature",
+      "directory": "features",
+      "layer": "PKC",
+      "description": "Product feature"
+    },
+    {
+      "type": "Requirement",
+      "directory": "requirements",
+      "layer": "PKC",
+      "description": "Requirement"
+    },
+    {
+      "type": "Specification",
+      "directory": "specs",
+      "layer": "PKC",
+      "description": "Spec"
+    },
+    {
+      "type": "Design",
+      "directory": "designs",
+      "layer": "PKC",
+      "description": "Design doc"
+    },
+    {
+      "type": "Release",
+      "directory": "releases",
+      "layer": "PKC",
+      "description": "Release"
+    },
+    {
+      "type": "CodeChange",
+      "directory": "code",
+      "layer": "PKC",
+      "description": "PR / code change"
+    },
+    {
+      "type": "Package",
+      "directory": "packages",
+      "layer": "PKC/SAC",
+      "description": "Build package/module"
+    },
+    {
+      "type": "Module",
+      "directory": "packages",
+      "layer": "PKC/SAC",
+      "description": "Module (alias Package)"
+    },
+    {
+      "type": "Risk",
+      "directory": "risks",
+      "layer": "PKC",
+      "description": "Risk"
+    },
+    {
+      "type": "Acceptance",
+      "directory": "acceptance",
+      "layer": "PKC",
+      "description": "Acceptance criterion"
+    },
+    {
+      "type": "ContextPack",
+      "directory": "packs",
+      "layer": "PKC",
+      "description": "Progressive disclosure pack"
+    },
+    {
+      "type": "System",
+      "directory": "systems",
+      "layer": "SAC",
+      "description": "Top-level system boundary"
+    },
+    {
+      "type": "Service",
+      "directory": "services",
+      "layer": "SAC",
+      "description": "Deployable runtime unit"
+    },
+    {
+      "type": "ApiContract",
+      "directory": "apis",
+      "layer": "SAC",
+      "description": "Service/API contract"
+    },
+    {
+      "type": "Endpoint",
+      "directory": "apis",
+      "layer": "SAC",
+      "description": "Individual endpoint"
+    },
+    {
+      "type": "BuildArtifact",
+      "directory": "build-artifacts",
+      "layer": "SAC",
+      "description": "Build output artifact"
+    },
+    {
+      "type": "ContainerImage",
+      "directory": "containers",
+      "layer": "SAC",
+      "description": "Container image definition"
+    },
+    {
+      "type": "Runtime",
+      "directory": "runtimes",
+      "layer": "SAC",
+      "description": "Container/runtime engine"
+    },
+    {
+      "type": "ServerlessFunction",
+      "directory": "serverless",
+      "layer": "SAC",
+      "description": "Lambda / Cloud Function"
+    },
+    {
+      "type": "DataStore",
+      "directory": "datastores",
+      "layer": "SAC",
+      "description": "Database / cache / search"
+    },
+    {
+      "type": "MessageQueue",
+      "directory": "messaging",
+      "layer": "SAC",
+      "description": "Queue / bus"
+    },
+    {
+      "type": "Topic",
+      "directory": "messaging",
+      "layer": "SAC",
+      "description": "Pub/sub topic"
+    },
+    {
+      "type": "IdentityProvider",
+      "directory": "identity",
+      "layer": "SAC",
+      "description": "SSO/OAuth IdP"
+    },
+    {
+      "type": "AuthConfig",
+      "directory": "identity",
+      "layer": "SAC",
+      "description": "Authn/z configuration"
+    },
+    {
+      "type": "IamRole",
+      "directory": "iam",
+      "layer": "SAC",
+      "description": "IAM / workload identity role"
+    },
+    {
+      "type": "IamPolicy",
+      "directory": "iam",
+      "layer": "SAC",
+      "description": "IAM policy"
+    },
+    {
+      "type": "Network",
+      "directory": "networks",
+      "layer": "SAC",
+      "description": "Generic network object"
+    },
+    {
+      "type": "Vpc",
+      "directory": "networks",
+      "layer": "SAC",
+      "description": "VPC / VNet"
+    },
+    {
+      "type": "Subnet",
+      "directory": "networks",
+      "layer": "SAC",
+      "description": "Subnet"
+    },
+    {
+      "type": "SecurityGroup",
+      "directory": "networks",
+      "layer": "SAC",
+      "description": "SG / NetworkPolicy"
+    },
+    {
+      "type": "LoadBalancer",
+      "directory": "networks",
+      "layer": "SAC",
+      "description": "LB / Ingress"
+    },
+    {
+      "type": "ServiceMesh",
+      "directory": "meshes",
+      "layer": "SAC",
+      "description": "Service mesh"
+    },
+    {
+      "type": "SecretStore",
+      "directory": "secrets",
+      "layer": "SAC",
+      "description": "Secrets manager"
+    },
+    {
+      "type": "Pipeline",
+      "directory": "pipelines",
+      "layer": "SAC",
+      "description": "CI/CD pipeline"
+    },
+    {
+      "type": "Deployment",
+      "directory": "deployments",
+      "layer": "SAC",
+      "description": "Deployed release unit"
+    },
+    {
+      "type": "Environment",
+      "directory": "environments",
+      "layer": "SAC",
+      "description": "dev/stage/prod"
+    },
+    {
+      "type": "FeatureFlag",
+      "directory": "feature-flags",
+      "layer": "SAC",
+      "description": "Feature flag"
+    },
+    {
+      "type": "TraceSource",
+      "directory": "observability",
+      "layer": "SAC",
+      "description": "Tracing backend"
+    },
+    {
+      "type": "LogSource",
+      "directory": "observability",
+      "layer": "SAC",
+      "description": "Log backend"
+    },
+    {
+      "type": "ConfigSource",
+      "directory": "config",
+      "layer": "SAC",
+      "description": "Configuration source"
+    },
+    {
+      "type": "InfrastructureStack",
+      "directory": "infrastructure",
+      "layer": "SAC",
+      "description": "IaC stack"
+    },
+    {
+      "type": "DataFlow",
+      "directory": "dataflows",
+      "layer": "SAC",
+      "description": "Data flow map"
+    },
+    {
+      "type": "ControlFlow",
+      "directory": "controlflows",
+      "layer": "SAC",
+      "description": "Control/deploy flow map"
+    },
+    {
+      "type": "BlastRadius",
+      "directory": "blast-radius",
+      "layer": "SAC",
+      "description": "Impact analysis node"
+    },
+    {
+      "type": "GlossaryTerm",
+      "directory": "glossary",
+      "layer": "SAC",
+      "description": "Business/tech glossary term"
+    },
+    {
+      "type": "Ownership",
+      "directory": "ownership",
+      "layer": "SAC",
+      "description": "Team ownership"
+    }
+  ],
+  "relations": {
+    "okf_core": [
+      "depends_on",
+      "routes_to",
+      "implements",
+      "documents",
+      "uses",
+      "owns",
+      "supersedes",
+      "related_to",
+      "tracks",
+      "maps_to"
+    ],
+    "pkc": [
+      "satisfies",
+      "designed_by",
+      "decides",
+      "informs",
+      "discovered_in",
+      "originates_from",
+      "lands_in",
+      "released_in",
+      "verified_by",
+      "assumes",
+      "blocks",
+      "answers",
+      "validates",
+      "invalidates",
+      "mitigates",
+      "exposes"
+    ],
+    "sac": [
+      "calls",
+      "exposes_api",
+      "consumes_api",
+      "deploys_to",
+      "runs_in",
+      "hosted_on",
+      "authenticates_via",
+      "authorizes_with",
+      "reads_from",
+      "writes_to",
+      "publishes_to",
+      "subscribes_to",
+      "provisions",
+      "configures",
+      "builds",
+      "produces_artifact",
+      "depends_on_package",
+      "impacts",
+      "flows_to",
+      "controls",
+      "contains",
+      "connects_to",
+      "secured_by",
+      "observed_by",
+      "flagged_by",
+      "owned_by",
+      "part_of",
+      "instantiates"
+    ],
+    "all": [
+      "depends_on",
+      "routes_to",
+      "implements",
+      "documents",
+      "uses",
+      "owns",
+      "supersedes",
+      "related_to",
+      "tracks",
+      "maps_to",
+      "satisfies",
+      "designed_by",
+      "decides",
+      "informs",
+      "discovered_in",
+      "originates_from",
+      "lands_in",
+      "released_in",
+      "verified_by",
+      "assumes",
+      "blocks",
+      "answers",
+      "validates",
+      "invalidates",
+      "mitigates",
+      "exposes",
+      "calls",
+      "exposes_api",
+      "consumes_api",
+      "deploys_to",
+      "runs_in",
+      "hosted_on",
+      "authenticates_via",
+      "authorizes_with",
+      "reads_from",
+      "writes_to",
+      "publishes_to",
+      "subscribes_to",
+      "provisions",
+      "configures",
+      "builds",
+      "produces_artifact",
+      "depends_on_package",
+      "impacts",
+      "flows_to",
+      "controls",
+      "contains",
+      "connects_to",
+      "secured_by",
+      "observed_by",
+      "flagged_by",
+      "owned_by",
+      "part_of",
+      "instantiates"
+    ]
+  },
+  "bundle_root_fields": {
+    "okf_version": "Required on bundle index.md",
+    "title": "Bundle title",
+    "description": "Bundle description",
+    "timestamp": "ISO-8601",
+    "tags": "Array of strings"
+  },
+  "second_brain_goal": "Indexed, typed knowledge over monorepo/repos that LLMs query with progressive disclosure"
+}

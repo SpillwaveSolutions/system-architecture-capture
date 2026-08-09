@@ -5,7 +5,7 @@ description: End-to-end reverse-engineer one or more git repositories into a SAC
 
 # SAC Reverse Engineer
 
-Build a **second brain** for the given monorepo or multi-repo set: walk code/IaC, materialize OKF concepts, wire relationships, validate, and leave a queryable knowledge bundle.
+Build a **second brain** for project information on the given monorepo or multi-repo set: walk code/IaC, materialize concepts using the **standard OKF schema pack** (`schemas/types.json`), wire relationships, validate with `--schema`, and leave a queryable knowledge bundle.
 
 ## Connectivity
 
@@ -32,7 +32,7 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/sac_orchestrate.py" \
 6. Validate:
 
 ```bash
-python3 "${CLAUDE_PLUGIN_ROOT}/scripts/sac_validate.py" --repo .
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/sac_validate.py" --repo . --schema
 python3 "${CLAUDE_PLUGIN_ROOT}/scripts/sac_doctor.py" --repo .
 ```
 

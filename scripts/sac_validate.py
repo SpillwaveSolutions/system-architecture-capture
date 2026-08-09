@@ -11,8 +11,19 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from sac_common import DEFAULT_RELATIONS, iter_concepts, parse_frontmatter, resolve_knowledge_root  # noqa: E402
 
+ROOT = Path(__file__).resolve().parents[1]
+SCHEMA_PATH = ROOT / "schemas" / "types.json"
+ENVELOPE_REQUIRED = ("type", "title")
 
-def validate_bundle(bundle: Path) -> dict:
+
+def load_schema_registry() -> dict:
+    import json
+    if SCHEMA_PATH.is_file():
+        return json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
+    return {"types": [], "relations": {"all": list(DEFAULT_RELATIONS)}}
+
+
+def validate_bundle(bundle: Path, *, schema: bool = False) -> dict:
     issues = []
     node_count = 0
     edge_count = 0
@@ -29,6 +40,35 @@ def validate_bundle(bundle: Path) -> dict:
             issues.append({"severity": "error", "kind": "missing_type", "message": f"{rel} missing type", "path": rel})
         if not fm.get("title"):
             issues.append({"severity": "error", "kind": "missing_title", "message": f"{rel} missing title", "path": rel})
+        if schema:
+            reg = getattr(validate_bundle, "_registry", None)
+            if reg is None:
+                validate_bundle._registry = load_schema_registry()
+                reg = validate_bundle._registry
+            known_types = {t["type"] for t in reg.get("types") or []}
+            known_rels = set((reg.get("relations") or {}).get("all") or DEFAULT_RELATIONS)
+            ctype = fm.get("type")
+            if ctype and known_types and ctype not in known_types and ctype != "Catalog":
+                issues.append({
+                    "severity": "warning",
+                    "kind": "unknown_type",
+                    "message": f"{rel} type {ctype!r} not in OKF schema pack",
+                    "path": rel,
+                })
+            if not fm.get("description"):
+                issues.append({
+                    "severity": "info",
+                    "kind": "missing_description",
+                    "message": f"{rel} missing description (recommended envelope field)",
+                    "path": rel,
+                })
+            if "verified" not in fm:
+                issues.append({
+                    "severity": "info",
+                    "kind": "missing_verified",
+                    "message": f"{rel} missing verified flag",
+                    "path": rel,
+                })
         for link in fm.get("links") or []:
             if not isinstance(link, dict):
                 continue
@@ -38,7 +78,11 @@ def validate_bundle(bundle: Path) -> dict:
             if not tgt:
                 issues.append({"severity": "error", "kind": "empty_target", "message": f"{rel} empty link target", "path": rel})
                 continue
-            if reln and reln not in DEFAULT_RELATIONS:
+            allowed_rels = DEFAULT_RELATIONS
+            if schema:
+                reg = getattr(validate_bundle, "_registry", None) or load_schema_registry()
+                allowed_rels = tuple((reg.get("relations") or {}).get("all") or DEFAULT_RELATIONS)
+            if reln and reln not in allowed_rels:
                 issues.append({"severity": "info", "kind": "unknown_rel", "message": f"{rel} unknown rel {reln}", "path": rel})
             tnorm = tgt if str(tgt).startswith("/") else "/" + str(tgt)
             target_file = bundle / tnorm.lstrip("/")
@@ -61,9 +105,12 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--repo", default=".")
     p.add_argument("--bundle", default=None)
     p.add_argument("--json", action="store_true")
+    p.add_argument("--schema", action="store_true", help="Validate against schemas/types.json OKF schema pack")
     args = p.parse_args(argv)
     bundle = resolve_knowledge_root(Path(args.repo).resolve(), args.bundle)
-    result = validate_bundle(bundle)
+    result = validate_bundle(bundle, schema=args.schema)
+    if args.schema:
+        result["schema_pack"] = str(SCHEMA_PATH)
     if args.json:
         print(json.dumps(result, indent=2))
     else:

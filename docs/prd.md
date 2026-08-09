@@ -6,7 +6,7 @@ Modern systems span microservices, IaC, CI/CD, IAM, networking, SSO, and tickets
 
 ## Goal
 
-Build an indexed **second brain** over one monorepo or many repos: services, infra, pipelines, identity, ownership, and relationships an LLM can reason over accurately.
+Build an indexed **second brain** over one monorepo or many repos for **project information**, using a **standard set of OKF schemas** (OKF core + PKC + SAC architecture types): services, infra, pipelines, identity, ownership, and relationships an LLM can reason over accurately.
 
 ## Solution
 
