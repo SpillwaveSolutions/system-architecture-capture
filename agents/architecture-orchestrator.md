@@ -13,6 +13,18 @@ Given repo URL(s) or local roots — and optional Confluence/Notion/Jira/Linear 
 
 services · APIs · packages · containers · serverless · IAM · VPC/networking · service mesh · SSO/OAuth · secrets · CI/CD · deployments · environments · feature flags · observability · IaC stacks · data/control flows · blast radius · glossary · ownership · ADRs
 
+## Connectivity boundary
+
+Do **not** implement or re-learn every external provider. The host environment
+supplies **skills and MCPs** for Confluence, Notion, Jira, Linear, ADO, GitHub,
+cloud APIs, IdP admin, etc. Your job:
+
+1. Ask/use those MCPs/skills to **fetch or export** when credentials exist.
+2. Point SAC scripts at the resulting files/dirs (`--wiki`, `--tickets`, scan roots).
+3. Own **normalization, graph structure, typed edges, blast radius, packs**.
+
+Repo-local scanners (manifests, Dockerfiles, IaC, K8s, pipeline YAML) need no MCP.
+
 ## Non-negotiables
 
 1. OKF format only (YAML frontmatter + Markdown + absolute `/path` links + `links[].rel`).

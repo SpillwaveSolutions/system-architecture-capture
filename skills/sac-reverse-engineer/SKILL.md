@@ -5,6 +5,12 @@ description: End-to-end reverse-engineer one or more git repositories into a SAC
 
 # SAC Reverse Engineer
 
+## Connectivity
+
+Provider login/API details come from host **skills and MCPs** — not from SAC.
+Fetch wiki/tickets/live cloud inventory via those tools first; SAC normalizes
+paths you pass in. In-repo scanners need only filesystem access to git roots.
+
 ## Process
 
 1. Confirm repo roots (local paths or clones of URLs) and system name.

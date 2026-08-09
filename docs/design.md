@@ -30,3 +30,23 @@ SAC (this plugin — reverse-engineer runtime & infrastructure topology)
 | sac_graph.py / sac_blast_radius.py | graph analytics |
 | sac_pack.py / sac_search.py | query surfaces |
 | sac_ingest_*.py | wiki + tickets |
+
+## External connectivity (skills & MCPs)
+
+SAC does **not** own deep provider SDKs or auth flows for Confluence, Notion,
+Jira, Linear, Azure DevOps, GitHub Issues, Auth0 admin APIs, cloud control
+planes, etc.
+
+| Layer | Owns |
+|-------|------|
+| **Environment skills / MCPs** | Connect, auth, fetch/export from providers |
+| **SAC** | Normalize exports → OKF concepts; scan *repo-local* artifacts; graph/query |
+
+Ingest scripts accept **already-fetched** markdown/JSON (or whatever the MCP
+writes to disk). Reverse-engineering of IdPs/IAM from *code and IaC evidence*
+still runs in-repo scanners — live API admin of those providers is out of scope.
+
+When an agent needs live data: call the host MCP/skill first, then pass the
+export path into `sac_ingest_wiki.py` / `sac_ingest_tickets.py` / orchestrator
+flags (`--wiki`, `--tickets`).
+

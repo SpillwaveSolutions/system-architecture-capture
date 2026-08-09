@@ -31,3 +31,7 @@ OKF Markdown only · no invented edges · scrub secrets · cloud/stack agnostic 
 python3 tests/test_sac.py
 bash tools/ci-local.sh
 ```
+
+## Provider connectivity
+
+External systems (wiki, tickets, cloud APIs, IdP admin) are reached via host **skills/MCPs**. SAC normalizes exports and scans git trees — it does not re-implement every provider.

@@ -28,6 +28,10 @@ PKC captures *why* (meetings, experiments, decisions). SAC captures *what is act
 
 Cloud-agnostic and stack-agnostic — deep pattern awareness without locking to one vendor.
 
+**Connectivity:** SAC does not ship deep clients for every wiki/ticket/cloud/IdP.
+Host **skills and MCPs** connect and export; SAC ingests those exports and scans
+repo-local code/IaC. You do not need SAC to re-implement provider APIs.
+
 ## Install
 
 ### Claude Code

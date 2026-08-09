@@ -41,3 +41,10 @@ sac:
     auto_glossary: true
     auto_ownership: true
     scrub_secrets: true
+
+  # Live provider connections are NOT configured here.
+  # Use host skills/MCPs to fetch, then point ingest at export paths:
+  #   sac_ingest_wiki.py ./exports/confluence
+  #   sac_ingest_tickets.py ./exports/jira.json
+  #   sac_orchestrate.py --wiki ./exports/wiki --tickets ./exports/issues.json
+

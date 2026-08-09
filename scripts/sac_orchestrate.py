@@ -3,6 +3,9 @@
 
 Point at one or more git repo roots (or a monorepo) and produce a full SAC knowledge bundle.
 Agent hosts invoke this as the deterministic backbone of the architecture-orchestrator agent.
+
+Wiki/ticket paths are optional exports produced by host skills/MCPs — SAC does not
+connect to Confluence/Jira/etc. itself.
 """
 
 from __future__ import annotations

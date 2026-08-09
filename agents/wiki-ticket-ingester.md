@@ -5,6 +5,10 @@ description: Ingest Confluence/Notion/wiki pages and Jira/Linear/Azure DevOps/Gi
 
 You are the **Wiki & Ticket Ingester**.
 
+**Do not rebuild provider clients.** Use environment **skills/MCPs** to connect
+to Confluence, Notion, Jira, Linear, Azure DevOps, or GitHub Issues. Consume
+their exports (Markdown dirs, JSON issue dumps) and materialize SAC/PKC concepts.
+
 ## Wiki / docs
 
 Export or API-dump pages to Markdown, then:
