@@ -94,6 +94,8 @@ CATALOGS = (
     "functions",
     "fields",
     "diagrams",
+    "containers-c4",
+    "components",
 )
 
 # Back-compat aliases
@@ -121,6 +123,10 @@ TYPE_TO_DIR: dict[str, str] = {
     "BoundedContext": "domains",
     "BuildArtifact": "build-artifacts",
     "BusinessCapability": "domains",
+    "C4CodeDiagram": "diagrams",
+    "C4ComponentDiagram": "diagrams",
+    "C4ContainerDiagram": "diagrams",
+    "C4ContextDiagram": "diagrams",
     "C4Diagram": "diagrams",
     "Cache": "caches",
     "Cdn": "networks",
@@ -134,6 +140,7 @@ TYPE_TO_DIR: dict[str, str] = {
     "CodeChange": "code",
     "CodeNamespace": "modules",
     "ComplianceControl": "compliance",
+    "Component": "components",
     "ComponentDiagram": "diagrams",
     "ConfigMap": "config",
     "ConfigSource": "config",
@@ -207,6 +214,7 @@ TYPE_TO_DIR: dict[str, str] = {
     "Package": "packages",
     "Parameter": "methods",
     "Permission": "iam",
+    "Person": "actors",
     "Pipeline": "pipelines",
     "Playbook": "designs",
     "PolicyDocument": "security",
@@ -238,11 +246,13 @@ TYPE_TO_DIR: dict[str, str] = {
     "Sla": "observability",
     "Sli": "observability",
     "Slo": "observability",
+    "SoftwareContainer": "containers-c4",
     "Specification": "specs",
     "StateMachineDiagram": "diagrams",
     "Subnet": "networks",
     "Subscription": "messaging",
     "System": "systems",
+    "SystemLandscapeDiagram": "diagrams",
     "Table": "knowledge",
     "TerraformModule": "infrastructure",
     "TestSuite": "tests",
@@ -366,6 +376,13 @@ DEFAULT_RELATIONS = (
     "illustrated_by",
     "source_of",
     "declared_in",
+    "c4_contains",
+    "c4_uses",
+    "c4_delivers",
+    "c4_implements",
+    "c4_view_of",
+    "zooms_into",
+    "syncs_with",
 )
 
 SECRET_PATTERNS: list[tuple[re.Pattern[str], str]] = [

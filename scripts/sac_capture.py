@@ -488,6 +488,85 @@ def capture_scan(bundle: Path, scan: dict, *, system_name: str = "System") -> di
         )
         stats[st] = stats.get(st, 0) + 1
 
+
+    # Structurizr DSL → C4 concepts
+    sz = scan.get("structurizr") or {}
+    for person in sz.get("people") or []:
+        rel = path_for_type("Person", slugify(person["name"]))
+        _, st = write_concept(
+            bundle,
+            rel,
+            {
+                "type": "Person",
+                "title": person["name"],
+                "description": f"C4 Person from Structurizr ({person.get('path')})",
+                "tags": ["c4", "person", "structurizr"],
+                "status": "active",
+                "truth_state": "current",
+                "verified": False,
+                "source": "structurizr",
+                "generated": True,
+                "source_path": person.get("path"),
+                "links": [{"target": f"/{sys_path}", "rel": "related_to"}],
+                "stable_timestamp": True,
+            },
+            f"# {person['name']}\n\nC4 **Person** imported from Structurizr DSL.\n",
+        )
+        stats[st] = stats.get(st, 0) + 1
+    for cont in sz.get("containers") or []:
+        rel = path_for_type("SoftwareContainer", cont.get("slug") or slugify(cont["name"]))
+        body = (
+            f"# {cont['name']}\n\n"
+            f"**C4 Container** (not a Docker image).\n\n"
+            f"**Technology:** {cont.get('technology') or '—'}  \n"
+            f"**Description:** {cont.get('description') or '—'}  \n"
+            f"**Source:** `{cont.get('path')}`\n"
+        )
+        _, st = write_concept(
+            bundle,
+            rel,
+            {
+                "type": "SoftwareContainer",
+                "title": cont["name"],
+                "description": cont.get("description") or f"C4 container {cont['name']}",
+                "tags": ["c4", "software-container", "structurizr"],
+                "technology": cont.get("technology"),
+                "status": "active",
+                "truth_state": "current",
+                "verified": False,
+                "source": "structurizr",
+                "generated": True,
+                "source_path": cont.get("path"),
+                "links": [{"target": f"/{sys_path}", "rel": "c4_contains"}],
+                "stable_timestamp": True,
+            },
+            body,
+        )
+        stats[st] = stats.get(st, 0) + 1
+    for comp in sz.get("components") or []:
+        rel = path_for_type("Component", comp.get("slug") or slugify(comp["name"]))
+        _, st = write_concept(
+            bundle,
+            rel,
+            {
+                "type": "Component",
+                "title": comp["name"],
+                "description": comp.get("description") or f"C4 component {comp['name']}",
+                "tags": ["c4", "component", "structurizr"],
+                "technology": comp.get("technology"),
+                "status": "active",
+                "truth_state": "current",
+                "verified": False,
+                "source": "structurizr",
+                "generated": True,
+                "source_path": comp.get("path"),
+                "links": [{"target": f"/{sys_path}", "rel": "part_of"}],
+                "stable_timestamp": True,
+            },
+            f"# {comp['name']}\n\nC4 **Component**.\n",
+        )
+        stats[st] = stats.get(st, 0) + 1
+
     return stats
 
 

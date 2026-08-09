@@ -22,6 +22,12 @@ Every concept is standard OKF Markdown. Prefer **specific** types over umbrellas
 
 (`Package` remains the **build** unit — npm/maven/gradle; `Module` is source/namespace inside it.)
 
+### SAC — C4 model
+`Person` · `System` · `ExternalSystem` · **`SoftwareContainer`** (C4 Container ≠ Docker) · `Component` ·  
+`C4ContextDiagram` · `C4ContainerDiagram` · `C4ComponentDiagram` · `C4CodeDiagram` · `SystemLandscapeDiagram`  
+
+See [c4-integration.md](./c4-integration.md).
+
 ### SAC — diagrams (Mermaid + PlantUML in Markdown)
 `Wireframe` · `ArchitectureDiagram` · `ComponentDiagram` · `SequenceDiagram` · `ActivityDiagram` ·  
 `StateMachineDiagram` · `ClassDiagram` · `ErdDiagram` · `DeploymentDiagram` · `DataFlowDiagram` ·  

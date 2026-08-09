@@ -84,3 +84,9 @@ Source-level **Module / Class / Method / Function** concepts complement build-le
 - Capture: included in default orchestrate domains `diagrams` + `code`
 - Skill: `sac-capture-diagrams`
 
+## C4 model
+
+Hierarchical architecture views (Context → Container → Component → Code) map onto SAC
+types. Generator: `scripts/sac_c4.py`. Import: `sac_scan_structurizr.py`. Full write-up:
+[c4-integration.md](./c4-integration.md).
+

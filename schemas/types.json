@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.2.0",
+  "schema_version": "1.3.0",
   "name": "sac-okf-schema-pack",
   "description": "Standard OKF schemas for the SAC second brain: system architecture, code structure (modules/classes/methods/functions), and diagrams (Mermaid + PlantUML wireframes, architecture, component, activity, state, class, ERD)",
   "envelope": "okf-concept-envelope.json",
@@ -195,7 +195,7 @@
       "type": "System",
       "directory": "systems",
       "layer": "SAC",
-      "description": "Top-level system boundary"
+      "description": "Top-level software system boundary (C4 Software System)"
     },
     {
       "type": "Service",
@@ -225,7 +225,7 @@
       "type": "ContainerImage",
       "directory": "containers",
       "layer": "SAC",
-      "description": "Container image definition"
+      "description": "OCI/Docker image definition (NOT a C4 Container \u2014 use SoftwareContainer for C4)"
     },
     {
       "type": "Runtime",
@@ -795,7 +795,7 @@
       "type": "Actor",
       "directory": "actors",
       "layer": "SAC",
-      "description": "Human or system actor"
+      "description": "Human or system actor (C4 Person when used in context views)"
     },
     {
       "type": "UserJourney",
@@ -813,7 +813,7 @@
       "type": "ExternalSystem",
       "directory": "integrations",
       "layer": "SAC",
-      "description": "Third-party / SaaS system"
+      "description": "Third-party / SaaS system (C4 external software system)"
     },
     {
       "type": "ConfigMap",
@@ -963,7 +963,55 @@
       "type": "C4Diagram",
       "directory": "diagrams",
       "layer": "SAC",
-      "description": "C4 model diagram (context/container/component)"
+      "description": "Umbrella C4 diagram (prefer C4Context/Container/Component/Code level types)"
+    },
+    {
+      "type": "SoftwareContainer",
+      "directory": "containers-c4",
+      "layer": "SAC",
+      "description": "C4 Container: deployable/runtime unit that hosts code or data (app, service, DB, SPA) \u2014 not a Docker image"
+    },
+    {
+      "type": "Component",
+      "directory": "components",
+      "layer": "SAC",
+      "description": "C4 Component: grouping of related functionality inside a SoftwareContainer"
+    },
+    {
+      "type": "C4ContextDiagram",
+      "directory": "diagrams",
+      "layer": "SAC",
+      "description": "C4 Level 1 \u2014 System Context diagram"
+    },
+    {
+      "type": "C4ContainerDiagram",
+      "directory": "diagrams",
+      "layer": "SAC",
+      "description": "C4 Level 2 \u2014 Container diagram"
+    },
+    {
+      "type": "C4ComponentDiagram",
+      "directory": "diagrams",
+      "layer": "SAC",
+      "description": "C4 Level 3 \u2014 Component diagram"
+    },
+    {
+      "type": "C4CodeDiagram",
+      "directory": "diagrams",
+      "layer": "SAC",
+      "description": "C4 Level 4 \u2014 Code diagram (classes/modules)"
+    },
+    {
+      "type": "SystemLandscapeDiagram",
+      "directory": "diagrams",
+      "layer": "SAC",
+      "description": "C4 system landscape (multiple systems)"
+    },
+    {
+      "type": "Person",
+      "directory": "actors",
+      "layer": "SAC",
+      "description": "C4 Person (alias of Actor when modeling C4)"
     }
   ],
   "relations": {
@@ -1074,7 +1122,14 @@
       "wireframes",
       "illustrated_by",
       "source_of",
-      "declared_in"
+      "declared_in",
+      "c4_contains",
+      "c4_uses",
+      "c4_delivers",
+      "c4_implements",
+      "c4_view_of",
+      "zooms_into",
+      "syncs_with"
     ],
     "all": [
       "depends_on",
@@ -1179,7 +1234,14 @@
       "wireframes",
       "illustrated_by",
       "source_of",
-      "declared_in"
+      "declared_in",
+      "c4_contains",
+      "c4_uses",
+      "c4_delivers",
+      "c4_implements",
+      "c4_view_of",
+      "zooms_into",
+      "syncs_with"
     ]
   },
   "bundle_root_fields": {
@@ -1189,5 +1251,61 @@
     "timestamp": "ISO-8601",
     "tags": "Array of strings"
   },
-  "second_brain_goal": "The specialized second brain for services, packages, infra, pipelines, identity, and architectural context over monorepo/repos"
+  "second_brain_goal": "The specialized second brain for services, packages, infra, pipelines, identity, and architectural context over monorepo/repos",
+  "c4": {
+    "model": "https://c4model.com/",
+    "levels": [
+      {
+        "level": 1,
+        "name": "System Context",
+        "diagram_type": "C4ContextDiagram",
+        "abstractions": [
+          "Person",
+          "Actor",
+          "System",
+          "ExternalSystem"
+        ]
+      },
+      {
+        "level": 2,
+        "name": "Container",
+        "diagram_type": "C4ContainerDiagram",
+        "abstractions": [
+          "SoftwareContainer",
+          "Service",
+          "WebApp",
+          "MobileApp",
+          "Database",
+          "Cache",
+          "MessageQueue"
+        ]
+      },
+      {
+        "level": 3,
+        "name": "Component",
+        "diagram_type": "C4ComponentDiagram",
+        "abstractions": [
+          "Component"
+        ]
+      },
+      {
+        "level": 4,
+        "name": "Code",
+        "diagram_type": "C4CodeDiagram",
+        "abstractions": [
+          "Module",
+          "Class",
+          "Interface",
+          "Function",
+          "Method"
+        ]
+      }
+    ],
+    "naming_collisions": {
+      "C4 Container": "SoftwareContainer (not ContainerImage)",
+      "Docker/OCI image": "ContainerImage",
+      "C4 Component": "Component",
+      "UML component diagram": "ComponentDiagram (generic) vs C4ComponentDiagram"
+    }
+  }
 }

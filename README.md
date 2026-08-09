@@ -53,6 +53,17 @@ Host **skills and MCPs** connect and export; SAC ingests those exports and scans
 repo-local code/IaC. You do not need SAC to re-implement provider APIs.
 
 
+## C4 model
+
+SAC maps to [C4](https://c4model.com/): Person → `Person`/`Actor`, System → `System`, **Container → `SoftwareContainer`** (not Docker `ContainerImage`), Component → `Component`, Code → `Module`/`Class`/…
+
+```bash
+python3 scripts/sac_c4.py --bundle knowledge --inventory
+python3 scripts/sac_c4.py --bundle knowledge --generate --system "My System"
+```
+
+Doc: [docs/c4-integration.md](./docs/c4-integration.md) · Skill: `sac-c4`
+
 ## Diagrams & code structure
 
 Capture **wireframes** (PlantUML salt) and **architecture / component / sequence / activity / state / class / ERD** diagrams as OKF concepts with Mermaid or PlantUML listings **inside** Markdown.

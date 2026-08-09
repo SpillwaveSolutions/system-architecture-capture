@@ -7,6 +7,7 @@
     "dev": "node scripts/serve-preview.mjs",
     "start": "node scripts/serve-preview.mjs",
     "test": "python3 tests/test_sac.py",
+    "c4": "python3 scripts/sac_c4.py --bundle sample-knowledge --generate --system \"Northstar Commerce\"",
     "validate": "python3 scripts/sac_validate.py --bundle sample-knowledge --schema",
     "doctor": "python3 scripts/sac_doctor.py --bundle sample-knowledge",
     "scan": "python3 scripts/sac_scan.py --help",

@@ -67,3 +67,5 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/sac_scan_code_structure.py" --root .
 3. One primary listing per concept; extra variants can be additional sections.
 4. After writing, link related topology and run `sac_validate.py --schema`.
 5. For UI work, use PlantUML **salt** wireframes linked to `WebApp` / `MobileApp` / `Channel`.
+
+For C4 level views and Structurizr, use skill **sac-c4** (`docs/c4-integration.md`).

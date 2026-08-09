@@ -157,6 +157,26 @@ class TestIngest(unittest.TestCase):
             self.assertGreater(t["created"] + t["updated"], 0)
 
 
+class TestC4(unittest.TestCase):
+    def test_inventory_and_generate(self):
+        from sac_c4 import inventory, generate_views, classify_c4
+        self.assertEqual(classify_c4("Service"), "Container")
+        self.assertEqual(classify_c4("ContainerImage"), None)  # Docker ≠ C4 container
+        self.assertEqual(classify_c4("SoftwareContainer"), "Container")
+        self.assertEqual(classify_c4("Person"), "Person")
+        inv = inventory(SAMPLE)
+        self.assertGreaterEqual(len(inv["SoftwareSystem"]), 1)
+        views = generate_views(SAMPLE, system="Northstar Commerce", write=False)
+        self.assertIn("flowchart", views["context"]["mermaid"])
+        self.assertIn("workspace", views["structurizr_dsl"])
+
+    def test_structurizr_scan(self):
+        from sac_scan_structurizr import scan_structurizr
+        # scan sample dsl if present
+        data = scan_structurizr(SAMPLE)
+        self.assertIn("containers", data)
+
+
 class TestDiagramsAndCode(unittest.TestCase):
     def test_scan_diagrams_from_sample(self):
         from sac_scan_diagrams import scan_diagrams

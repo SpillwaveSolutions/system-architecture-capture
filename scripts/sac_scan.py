@@ -17,10 +17,11 @@ from sac_scan_cicd import scan_cicd  # noqa: E402
 from sac_scan_identity import scan_identity  # noqa: E402
 from sac_scan_diagrams import scan_diagrams  # noqa: E402
 from sac_scan_code_structure import scan_code_structure  # noqa: E402
+from sac_scan_structurizr import scan_structurizr  # noqa: E402
 
 
 def full_scan(root: Path, *, domains: list[str] | None = None) -> dict:
-    want = set(domains or ["packages", "containers", "iac", "k8s", "cicd", "identity", "diagrams", "code"])
+    want = set(domains or ["packages", "containers", "iac", "k8s", "cicd", "identity", "diagrams", "code", "structurizr"])
     result: dict = {"root": str(root), "domains": sorted(want)}
     if "packages" in want:
         result["packages"] = scan_packages(root)
@@ -38,6 +39,8 @@ def full_scan(root: Path, *, domains: list[str] | None = None) -> dict:
         result["diagrams"] = scan_diagrams(root)
     if "code" in want:
         result["code"] = scan_code_structure(root)
+    if "structurizr" in want:
+        result["structurizr"] = scan_structurizr(root)
     # summary counts
     summary = {}
     for k, v in result.items():
@@ -59,7 +62,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--json", action="store_true")
     p.add_argument(
         "--domains",
-        default="packages,containers,iac,k8s,cicd,identity,diagrams,code",
+        default="packages,containers,iac,k8s,cicd,identity,diagrams,code,structurizr",
         help="Comma-separated domain list",
     )
     args = p.parse_args(argv)
