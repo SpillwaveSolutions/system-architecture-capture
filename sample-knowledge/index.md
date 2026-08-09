@@ -8,7 +8,7 @@ tags: [sac, pkc, okf, sample, architecture, microservices]
 
 # Northstar Commerce Architecture
 
-Demo **system architecture knowledge** produced by System Architecture Capture (SAC).
+Demo **second brain** for a multi-service commerce platform — produced by System Architecture Capture (SAC).
 
 **Code → packages → services → APIs → IaC → CI/CD → identity → runtime topology**
 

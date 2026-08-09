@@ -1,6 +1,8 @@
 # System Architecture Capture (SAC)
 
-**Reverse-engineer modern application systems** into a durable [OKF](https://github.com/SpillwaveSolutions/okf-plugin) knowledge graph — on top of [Project Knowledge Capture (PKC)](https://github.com/SpillwaveSolutions/project-knowledge-capture).
+**Build a second brain for your monorepo or multi-repo estate.**
+
+Reverse-engineer modern application systems into a durable [OKF](https://github.com/SpillwaveSolutions/okf-plugin) knowledge graph — on top of [Project Knowledge Capture (PKC)](https://github.com/SpillwaveSolutions/project-knowledge-capture) — so agents and humans can query architecture, ownership, and blast radius with precision.
 
 Works as a **Claude Code**, **Grok Build**, **Codex**, and **OpenCode** plugin.
 
@@ -12,6 +14,8 @@ Works as a **Claude Code**, **Grok Build**, **Codex**, and **OpenCode** plugin.
 | **Depends on** | [PKC](https://github.com/SpillwaveSolutions/project-knowledge-capture) · [OKF](https://github.com/SpillwaveSolutions/okf-plugin) |
 
 ## Why SAC
+
+**Goal:** a living **second brain** about the repos (or monorepo) you point it at — not a one-shot report.
 
 PKC captures *why* (meetings, experiments, decisions). SAC captures *what is actually running*:
 

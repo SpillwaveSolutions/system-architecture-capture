@@ -1,6 +1,6 @@
 # AGENTS.md — System Architecture Capture
 
-SAC reverse-engineers modern application systems into OKF knowledge (extends PKC).
+SAC builds a **second brain** for repos/monorepos by reverse-engineering modern application systems into OKF knowledge (extends PKC).
 
 ## Hosts
 

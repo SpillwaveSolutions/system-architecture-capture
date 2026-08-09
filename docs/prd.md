@@ -4,6 +4,10 @@
 
 Modern systems span microservices, IaC, CI/CD, IAM, networking, SSO, and tickets/wikis. Knowledge is scattered; agents cannot answer blast-radius or dependency questions with precision.
 
+## Goal
+
+Build an indexed **second brain** over one monorepo or many repos: services, infra, pipelines, identity, ownership, and relationships an LLM can reason over accurately.
+
 ## Solution
 
 SAC reverse-engineers repos (+ optional wiki/tickets) into a structured OKF knowledge graph extending PKC.

@@ -5,6 +5,8 @@ description: End-to-end reverse-engineer one or more git repositories into a SAC
 
 # SAC Reverse Engineer
 
+Build a **second brain** for the given monorepo or multi-repo set: walk code/IaC, materialize OKF concepts, wire relationships, validate, and leave a queryable knowledge bundle.
+
 ## Connectivity
 
 Provider login/API details come from host **skills and MCPs** — not from SAC.

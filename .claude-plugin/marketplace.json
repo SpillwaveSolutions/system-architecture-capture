@@ -16,7 +16,7 @@
       "homepage": "https://github.com/SpillwaveSolutions/system-architecture-capture",
       "repository": "https://github.com/SpillwaveSolutions/system-architecture-capture",
       "license": "MIT",
-      "keywords": ["sac", "architecture", "okf", "pkc", "reverse-engineering", "claude-code"],
+      "keywords": ["sac", "architecture", "okf", "pkc", "build a second brain / reverse-engineering", "claude-code"],
       "category": "productivity"
     }
   ]
