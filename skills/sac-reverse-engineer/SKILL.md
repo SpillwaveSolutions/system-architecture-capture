@@ -1,0 +1,31 @@
+---
+name: sac-reverse-engineer
+description: End-to-end reverse-engineer one or more git repositories into a SAC architecture knowledge graph (packages, services, IaC, CI/CD, IAM, identity, topology). Primary entry skill for SAC.
+---
+
+# SAC Reverse Engineer
+
+## Process
+
+1. Confirm repo roots (local paths or clones of URLs) and system name.
+2. Optional: wiki export dir, tickets JSON.
+3. Run orchestrator:
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/sac_orchestrate.py" \
+  --repo . \
+  --system "$SYSTEM_NAME" \
+  --scan-root "$REPO_ROOT" \
+  --json
+```
+
+4. Delegate enrichment to sub-agents for purpose/SLA/ownership and API contracts.
+5. Run blast radius on critical services.
+6. Validate:
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/sac_validate.py" --repo .
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/sac_doctor.py" --repo .
+```
+
+7. Report topology summary + knowledge paths.

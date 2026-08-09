@@ -1,0 +1,16 @@
+{
+  "name": "system-architecture-capture",
+  "version": "0.1.0",
+  "description": "System Architecture Capture (SAC) for Codex — reverse-engineer repos into OKF/PKC architecture knowledge graphs.",
+  "skills": "skills/",
+  "agents": "agents/",
+  "commands": "commands/",
+  "scripts": "scripts/",
+  "compatibility": {
+    "codex": true,
+    "claude_plugin": true,
+    "skills_md": true
+  },
+  "repository": "https://github.com/SpillwaveSolutions/system-architecture-capture",
+  "license": "MIT"
+}

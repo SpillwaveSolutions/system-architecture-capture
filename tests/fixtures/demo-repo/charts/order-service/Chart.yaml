@@ -1,0 +1,4 @@
+apiVersion: v2
+name: order-service
+version: 1.18.0
+description: Order service helm chart

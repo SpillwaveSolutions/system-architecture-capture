@@ -1,0 +1,43 @@
+sac:
+  enabled: true
+  knowledge_root: knowledge
+  # SAC extends PKC catalogs; keep both roots compatible
+  pkc_compatible: true
+  okf_bundle: true
+  depends_on:
+    - project-knowledge-capture
+    - okf-plugin
+  scan:
+    packages: true
+    containers: true
+    iac: true
+    k8s: true
+    cicd: true
+    identity: true
+    serverless: true
+    networking: true
+  reverse_engineer:
+    monorepo: true
+    multi_repo: true
+    max_depth: 12
+    ignore:
+      - node_modules
+      - .git
+      - dist
+      - build
+      - target
+      - vendor
+      - .terraform
+  ingest:
+    wiki:
+      providers: [confluence, notion, github_wiki]
+    tickets:
+      providers: [jira, linear, azure_devops, github_issues]
+  graph:
+    blast_radius_hops: 3
+    dataflow: true
+    controlflow: true
+  capture:
+    auto_glossary: true
+    auto_ownership: true
+    scrub_secrets: true

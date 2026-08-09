@@ -1,0 +1,16 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "sac-plugin-marketplace",
+  "owner": {
+    "name": "Rick Hightower",
+    "url": "https://github.com/RichardHightower"
+  },
+  "plugins": [
+    {
+      "name": "system-architecture-capture",
+      "source": "./",
+      "description": "System Architecture Capture — reverse-engineer modern systems into OKF/PKC knowledge graphs",
+      "version": "0.1.0"
+    }
+  ]
+}

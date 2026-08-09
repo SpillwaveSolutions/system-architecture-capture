@@ -1,0 +1,19 @@
+name: deploy-prod
+on:
+  push:
+    branches: [main]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+  build-image:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: docker/build-push-action@v5
+  helm-deploy:
+    needs: build-image
+    runs-on: ubuntu-latest
+    steps:
+      - run: helm upgrade --install order deploy/charts/order-service

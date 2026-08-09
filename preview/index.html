@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>System Architecture Capture</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0b1220;
+      --bg-elevated: #141c2b;
+      --bg-soft: #0f1726;
+      --border: #243044;
+      --text: #e8eef8;
+      --muted: #8b9bb4;
+      --accent: #38bdf8;
+      --accent-dim: #0c4a6e;
+      --green: #34d399;
+      --amber: #fbbf24;
+      --violet: #a78bfa;
+      --rose: #fb7185;
+      --radius: 12px;
+      --font: "DM Sans", system-ui, sans-serif;
+      --mono: "JetBrains Mono", ui-monospace, monospace;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: var(--font); }
+    body { min-height: 100dvh; }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .app { display: grid; grid-template-columns: 300px 1fr; min-height: 100dvh; }
+    @media (max-width: 900px) {
+      .app { grid-template-columns: 1fr; }
+      .sidebar { border-right: none; border-bottom: 1px solid var(--border); max-height: 40vh; overflow: auto; }
+    }
+    .sidebar {
+      background: var(--bg-soft); border-right: 1px solid var(--border);
+      padding: 1.2rem 1rem 2rem; display: flex; flex-direction: column; gap: 1.1rem;
+    }
+    .brand h1 { margin: 0; font-size: 1.05rem; font-weight: 700; letter-spacing: -0.02em; }
+    .brand .ver { font-family: var(--mono); font-size: 0.72rem; color: var(--muted); }
+    .brand p { margin: 0.45rem 0 0; font-size: 0.8rem; color: var(--muted); line-height: 1.45; }
+    .badge-row { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.55rem; }
+    .badge {
+      font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;
+      padding: 0.2rem 0.45rem; border-radius: 999px; border: 1px solid var(--border);
+      color: var(--muted); background: var(--bg-elevated);
+    }
+    .badge.cc { color: var(--accent); border-color: var(--accent-dim); }
+    .badge.gb { color: var(--violet); border-color: #4c3d7a; }
+    .badge.cx { color: var(--green); border-color: #14532d; }
+    .badge.oc { color: var(--amber); border-color: #78350f; }
+    nav section h2 {
+      margin: 0 0 0.4rem; padding: 0 0.35rem; font-size: 0.68rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted);
+    }
+    nav ul { list-style: none; margin: 0; padding: 0; }
+    nav li button {
+      width: 100%; text-align: left; background: transparent; border: none; color: var(--text);
+      font: inherit; font-size: 0.85rem; padding: 0.42rem 0.55rem; border-radius: 8px;
+      cursor: pointer; display: flex; align-items: center; gap: 0.45rem;
+    }
+    nav li button:hover { background: var(--bg-elevated); }
+    nav li button.active { background: var(--accent-dim); color: #e0f2fe; }
+    .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; background: var(--muted); }
+    .dot.service { background: var(--green); }
+    .dot.api { background: var(--accent); }
+    .dot.network { background: var(--violet); }
+    .dot.pipeline { background: var(--amber); }
+    .dot.identity { background: var(--rose); }
+    main { display: flex; flex-direction: column; min-width: 0; }
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+      padding: 0.85rem 1.4rem; border-bottom: 1px solid var(--border);
+      background: rgba(11,18,32,0.92); position: sticky; top: 0; backdrop-filter: blur(8px); z-index: 2;
+    }
+    .topbar h2 { margin: 0; font-size: 0.95rem; font-weight: 600; }
+    .topbar .path { font-family: var(--mono); font-size: 0.72rem; color: var(--muted); }
+    .content { padding: 1.35rem 1.5rem 3rem; max-width: 920px; }
+    .hero {
+      background: linear-gradient(145deg, #0f2744 0%, #0f1726 50%, #141c2b 100%);
+      border: 1px solid var(--border); border-radius: 16px; padding: 1.45rem 1.5rem; margin-bottom: 1.35rem;
+    }
+    .hero h2 { margin: 0 0 0.5rem; font-size: 1.4rem; letter-spacing: -0.03em; }
+    .hero p { margin: 0; color: var(--muted); line-height: 1.55; font-size: 0.95rem; }
+    .chain {
+      display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; margin-top: 1rem;
+      font-family: var(--mono); font-size: 0.7rem;
+    }
+    .chain span {
+      padding: 0.28rem 0.5rem; border-radius: 6px; background: var(--bg); border: 1px solid var(--border);
+      cursor: pointer; color: var(--text);
+    }
+    .chain span:hover { border-color: var(--accent); color: var(--accent); }
+    .chain .arrow { border: none; background: none; color: var(--muted); padding: 0; cursor: default; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 0.7rem; margin-bottom: 1.35rem; }
+    .card {
+      background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 0.85rem 0.95rem; cursor: pointer; transition: border-color 0.15s, transform 0.15s;
+    }
+    .card:hover { border-color: var(--accent); transform: translateY(-1px); }
+    .card h3 { margin: 0 0 0.3rem; font-size: 0.88rem; }
+    .card p { margin: 0; font-size: 0.74rem; color: var(--muted); line-height: 1.4; }
+    .md {
+      background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 1.2rem 1.35rem; line-height: 1.6; font-size: 0.92rem;
+    }
+    .md h1 { font-size: 1.3rem; margin: 0 0 0.7rem; letter-spacing: -0.02em; }
+    .md h2 { font-size: 1.02rem; margin: 1.3rem 0 0.45rem; border-bottom: 1px solid var(--border); padding-bottom: 0.28rem; }
+    .md h3 { font-size: 0.95rem; margin: 1rem 0 0.35rem; }
+    .md p { margin: 0.45rem 0; color: #d0dae8; }
+    .md ul, .md ol { padding-left: 1.2rem; color: #d0dae8; }
+    .md code {
+      font-family: var(--mono); font-size: 0.82em; background: var(--bg); padding: 0.1rem 0.35rem;
+      border-radius: 4px; border: 1px solid var(--border);
+    }
+    .md pre {
+      font-family: var(--mono); font-size: 0.76rem; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 8px; padding: 0.8rem 0.95rem; overflow-x: auto; color: #c5d4e8;
+    }
+    .md pre code { background: none; border: none; padding: 0; }
+    .md table { width: 100%; border-collapse: collapse; font-size: 0.84rem; margin: 0.7rem 0; }
+    .md th, .md td { border: 1px solid var(--border); padding: 0.38rem 0.5rem; text-align: left; }
+    .md th { background: var(--bg); color: var(--muted); font-weight: 600; }
+    .frontmatter {
+      font-family: var(--mono); font-size: 0.7rem; color: var(--muted); background: var(--bg);
+      border: 1px dashed var(--border); border-radius: 8px; padding: 0.7rem 0.85rem; margin-bottom: 0.95rem; white-space: pre-wrap;
+    }
+    .stat-row { display: flex; flex-wrap: wrap; gap: 0.6rem; margin: 0.9rem 0 0.3rem; }
+    .stat {
+      background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 0.55rem 0.75rem; min-width: 100px;
+    }
+    .stat b { display: block; font-size: 1.15rem; letter-spacing: -0.02em; }
+    .stat span { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+    .skill-chip {
+      display: flex; justify-content: space-between; gap: 0.5rem; align-items: center;
+      padding: 0.5rem 0.65rem; background: var(--bg-elevated); border: 1px solid var(--border);
+      border-radius: 8px; font-size: 0.82rem; margin-bottom: 0.35rem;
+    }
+    .skill-chip code { font-family: var(--mono); font-size: 0.76rem; color: var(--accent); }
+    input, button.go {
+      font: inherit; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-elevated); color: var(--text);
+    }
+    input { padding: 0.5rem 0.65rem; width: min(70%, 360px); }
+    button.go { padding: 0.5rem 0.8rem; background: var(--accent-dim); cursor: pointer; }
+    .mermaid { background: var(--bg); border-radius: 8px; padding: 0.75rem; overflow: auto; }
+  </style>
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+    mermaid.initialize({ startOnLoad: false, theme: "dark", securityLevel: "loose" });
+    window.__mermaid = mermaid;
+  </script>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <h1>System Architecture Capture</h1>
+        <span class="ver" id="version">v0.1.0</span>
+        <p>Reverse-engineer repos into an OKF architecture knowledge graph on top of PKC. Claude · Grok · Codex · OpenCode.</p>
+        <div class="badge-row">
+          <span class="badge cc">Claude</span>
+          <span class="badge gb">Grok</span>
+          <span class="badge cx">Codex</span>
+          <span class="badge oc">OpenCode</span>
+        </div>
+      </div>
+      <nav>
+        <section>
+          <h2>Explorer</h2>
+          <ul>
+            <li><button type="button" class="active" data-view="home">Overview</button></li>
+            <li><button type="button" data-view="skills">Skills & agents</button></li>
+            <li><button type="button" data-view="graph">Topology graph</button></li>
+            <li><button type="button" data-view="blast">Blast radius</button></li>
+            <li><button type="button" data-view="doctor">Doctor</button></li>
+            <li><button type="button" data-view="search">Search</button></li>
+            <li><button type="button" data-view="scan">Demo scan</button></li>
+            <li><button type="button" data-view="readme">README</button></li>
+          </ul>
+        </section>
+        <section>
+          <h2>Sample knowledge</h2>
+          <ul id="tree"></ul>
+        </section>
+      </nav>
+    </aside>
+    <main>
+      <div class="topbar">
+        <h2 id="title">Overview</h2>
+        <span class="path" id="path-label">plugin · multi-host</span>
+      </div>
+      <div class="content" id="content"></div>
+    </main>
+  </div>
+  <script>
+    const content = document.getElementById("content");
+    const titleEl = document.getElementById("title");
+    const pathEl = document.getElementById("path-label");
+    let meta = { skills: [], agents: [], commands: [], version: "0.1.0" };
+    let tree = [];
+
+    const CHAIN = [
+      { label: "System", path: "systems/northstar-commerce.md" },
+      { label: "Gateway", path: "services/api-gateway.md" },
+      { label: "Order", path: "services/order-service.md" },
+      { label: "Payment", path: "services/payment-service.md" },
+      { label: "Kafka", path: "messaging/orders-bus.md" },
+      { label: "Notify", path: "services/notify-worker.md" },
+    ];
+
+    function kindFor(path) {
+      if (path.startsWith("services/")) return "service";
+      if (path.startsWith("apis/")) return "api";
+      if (path.startsWith("networks/") || path.startsWith("meshes/")) return "network";
+      if (path.startsWith("pipelines/") || path.startsWith("deployments/")) return "pipeline";
+      if (path.startsWith("identity/") || path.startsWith("iam/")) return "identity";
+      return "other";
+    }
+
+    function esc(s) {
+      return String(s)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function inline(text) {
+      let t = esc(text);
+      t = t.replace(/`([^`]+)`/g, "<code>$1</code>");
+      t = t.replace(/\[([^\]]+)\]\(([^)]+)\)/g, function (_, label, href) {
+        if (href.startsWith("/")) {
+          const p = href.replace(/^\//, "");
+          return '<a href="#" data-open="' + esc(p) + '">' + label + "</a>";
+        }
+        return '<a href="' + esc(href) + '" target="_blank" rel="noopener">' + label + "</a>";
+      });
+      t = t.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+      return t;
+    }
+
+    function renderMarkdown(src) {
+      let fm = "", body = src;
+      if (src.startsWith("---")) {
+        const parts = src.split("---");
+        if (parts.length >= 3) { fm = parts[1].trim(); body = parts.slice(2).join("---").replace(/^\n+/, ""); }
+      }
+      let html = "";
+      if (fm) html += '<div class="frontmatter">' + esc(fm) + "</div>";
+      const lines = body.split("\n");
+      let i = 0, inCode = false, codeBuf = [], inList = false;
+      const flushList = () => { if (inList) { html += "</ul>"; inList = false; } };
+      const flushCode = () => {
+        if (inCode) { html += "<pre><code>" + esc(codeBuf.join("\n")) + "</code></pre>"; codeBuf = []; inCode = false; }
+      };
+      while (i < lines.length) {
+        const line = lines[i];
+        if (line.startsWith("```")) {
+          if (inCode) flushCode(); else { flushList(); inCode = true; codeBuf = []; }
+          i++; continue;
+        }
+        if (inCode) { codeBuf.push(line); i++; continue; }
+        if (line.trim() === "") { flushList(); i++; continue; }
+        if (line.startsWith("# ")) { flushList(); html += "<h1>" + inline(line.slice(2)) + "</h1>"; i++; continue; }
+        if (line.startsWith("## ")) { flushList(); html += "<h2>" + inline(line.slice(3)) + "</h2>"; i++; continue; }
+        if (line.startsWith("### ")) { flushList(); html += "<h3>" + inline(line.slice(4)) + "</h3>"; i++; continue; }
+        if (line.startsWith("- ") || line.startsWith("* ")) {
+          if (!inList) { html += "<ul>"; inList = true; }
+          html += "<li>" + inline(line.slice(2)) + "</li>"; i++; continue;
+        }
+        if (line.includes("|") && line.trim().startsWith("|")) {
+          flushList();
+          const rows = [];
+          while (i < lines.length && lines[i].includes("|")) {
+            const raw = lines[i];
+            if (!/^\s*\|?\s*[:\-| ]+\s*$/.test(raw)) {
+              rows.push(raw.split("|").slice(1, -1).map(function (c) { return c.trim(); }));
+            }
+            i++;
+          }
+          if (rows.length) {
+            html += "<table><thead><tr>" + rows[0].map(function (c) { return "<th>" + inline(c) + "</th>"; }).join("") + "</tr></thead><tbody>";
+            for (let r = 1; r < rows.length; r++) {
+              html += "<tr>" + rows[r].map(function (c) { return "<td>" + inline(c) + "</td>"; }).join("") + "</tr>";
+            }
+            html += "</tbody></table>";
+          }
+          continue;
+        }
+        flushList();
+        html += "<p>" + inline(line) + "</p>";
+        i++;
+      }
+      flushList(); flushCode();
+      return html;
+    }
+
+    function setActive(btn) {
+      document.querySelectorAll("nav button").forEach(function (b) { b.classList.remove("active"); });
+      if (btn) btn.classList.add("active");
+    }
+
+    function wireOpeners() {
+      content.querySelectorAll("[data-open]").forEach(function (el) {
+        el.addEventListener("click", function (e) {
+          e.preventDefault();
+          openSample(el.getAttribute("data-open"));
+        });
+      });
+    }
+
+    function showHome() {
+      titleEl.textContent = "Overview";
+      pathEl.textContent = "plugin · multi-host";
+      setActive(document.querySelector('[data-view="home"]'));
+      content.innerHTML =
+        '<div class="hero">' +
+        "<h2>Reverse-engineer the system into a second brain</h2>" +
+        "<p>SAC walks code, IaC, CI/CD, IAM, networking, and identity — then materializes an OKF graph that PKC/OKF agents can pack, search, and blast-radius query with precision.</p>" +
+        '<div class="chain" id="chain"></div>' +
+        '<div class="stat-row" id="stats"><div class="stat"><b>…</b><span>nodes</span></div></div></div>' +
+        '<div class="grid">' +
+        '<div class="card" data-open="systems/northstar-commerce.md"><h3>System</h3><p>Northstar Commerce multi-service platform</p></div>' +
+        '<div class="card" data-open="services/order-service.md"><h3>Order service</h3><p>Checkout orchestration + Kafka events</p></div>' +
+        '<div class="card" data-open="identity/auth0.md"><h3>Auth0</h3><p>SSO / JWT at the gateway</p></div>' +
+        '<div class="card" data-open="networks/prod-vpc.md"><h3>Prod VPC</h3><p>Subnets, ALB, security groups</p></div>' +
+        '<div class="card" data-open="pipelines/gha-deploy-prod.md"><h3>CI/CD</h3><p>GitHub Actions + Argo GitOps</p></div>' +
+        '<div class="card" data-open="blast-radius/blast-order-service.md"><h3>Blast radius</h3><p>Impact if order-service degrades</p></div>' +
+        "</div>" +
+        '<div class="md"><h2>One command</h2>' +
+        "<pre><code>python3 scripts/sac_orchestrate.py --system \"My System\" --scan-root ./repo --json</code></pre>" +
+        "<p>Plugins: <code>/sac-reverse-engineer</code> · agents under <code>agents/</code> · depends on PKC + OKF.</p></div>";
+
+      const chain = document.getElementById("chain");
+      CHAIN.forEach(function (c, idx) {
+        const span = document.createElement("span");
+        span.textContent = c.label;
+        span.onclick = function () { openSample(c.path); };
+        chain.appendChild(span);
+        if (idx < CHAIN.length - 1) {
+          const a = document.createElement("span");
+          a.className = "arrow"; a.textContent = "→";
+          chain.appendChild(a);
+        }
+      });
+      wireOpeners();
+      fetch("/api/doctor").then(function (r) { return r.json(); }).then(function (d) {
+        const el = document.getElementById("stats");
+        if (!el) return;
+        el.innerHTML =
+          '<div class="stat"><b>' + d.node_count + '</b><span>nodes</span></div>' +
+          '<div class="stat"><b>' + d.edge_count + '</b><span>edges</span></div>' +
+          '<div class="stat"><b>' + Object.keys(d.types || {}).length + '</b><span>types</span></div>' +
+          '<div class="stat"><b>' + (d.errors || 0) + '</b><span>errors</span></div>';
+      }).catch(function () {});
+    }
+
+    function showSkills() {
+      titleEl.textContent = "Skills & agents";
+      pathEl.textContent = "skills/ · agents/";
+      setActive(document.querySelector('[data-view="skills"]'));
+      let html = '<div class="md"><h1>Plugin surface</h1><h2>Skills</h2>';
+      (meta.skills || []).forEach(function (s) {
+        html += '<div class="skill-chip"><code>/' + esc(s) + "</code><span>" + esc(s) + "</span></div>";
+      });
+      html += "<h2>Agents</h2>";
+      (meta.agents || []).forEach(function (a) {
+        html += '<div class="skill-chip"><code>' + esc(a) + "</code><span>sub-agent</span></div>";
+      });
+      html += "<h2>Depends on</h2><ul><li><code>project-knowledge-capture</code> (PKC)</li><li><code>okf-plugin</code> (OKF graph eng)</li></ul></div>";
+      content.innerHTML = html;
+    }
+
+    async function showGraph() {
+      titleEl.textContent = "Topology graph";
+      pathEl.textContent = "order-service · 2-hop pack";
+      setActive(document.querySelector('[data-view="graph"]'));
+      content.innerHTML = '<div class="md"><h1>Order service neighborhood</h1><div class="mermaid" id="mmd">Loading…</div></div>';
+      try {
+        const data = await fetch("/api/mermaid?concept=services/order-service.md").then(function (r) { return r.json(); });
+        let src = (data.mermaid || "").replace(/^```mermaid\n?/, "").replace(/```\s*$/, "").trim();
+        const el = document.getElementById("mmd");
+        el.removeAttribute("data-processed");
+        el.textContent = src;
+        if (window.__mermaid) await window.__mermaid.run({ nodes: [el] });
+      } catch (e) {
+        content.innerHTML = '<div class="md"><p>Graph failed: ' + esc(String(e)) + "</p></div>";
+      }
+    }
+
+    async function showBlast() {
+      titleEl.textContent = "Blast radius";
+      pathEl.textContent = "order-service · 2 hops";
+      setActive(document.querySelector('[data-view="blast"]'));
+      const data = await fetch("/api/blast?concept=services/order-service.md").then(function (r) { return r.json(); });
+      let html = '<div class="md"><h1>Blast radius: order-service</h1>';
+      html += "<p>Impacted concepts within " + data.hops + " hops: <strong>" + data.impacted_count + "</strong></p><ul>";
+      (data.impacted || []).forEach(function (i) {
+        html += "<li>hop " + i.hop + " · <strong>" + esc(i.title || "") + "</strong> <code>" + esc(i.type || "") + "</code> via <code>" + esc(i.via || "") + "</code></li>";
+      });
+      html += "</ul></div>";
+      content.innerHTML = html;
+    }
+
+    async function showDoctor() {
+      titleEl.textContent = "Doctor";
+      pathEl.textContent = "sample-knowledge health";
+      setActive(document.querySelector('[data-view="doctor"]'));
+      const data = await fetch("/api/doctor").then(function (r) { return r.json(); });
+      let html = '<div class="md"><h1>Bundle health</h1>';
+      html += "<p>Nodes: " + data.node_count + " · Edges: " + data.edge_count + " · Errors: " + data.errors + " · Warnings: " + data.warnings + "</p>";
+      html += "<h2>Types</h2><ul>";
+      Object.entries(data.types || {}).forEach(function (kv) {
+        html += "<li><code>" + esc(kv[0]) + "</code> — " + kv[1] + "</li>";
+      });
+      html += "</ul><h2>Issues</h2><ul>";
+      (data.issues || []).slice(0, 30).forEach(function (i) {
+        html += "<li><strong>" + i.severity + "/" + i.kind + "</strong>: " + esc(i.message) + "</li>";
+      });
+      if (!(data.issues || []).length) html += "<li>All clear</li>";
+      html += "</ul></div>";
+      content.innerHTML = html;
+    }
+
+    async function showSearch() {
+      titleEl.textContent = "Search";
+      pathEl.textContent = "sac_search · sample-knowledge";
+      setActive(document.querySelector('[data-view="search"]'));
+      content.innerHTML = '<div class="md"><h1>Search architecture knowledge</h1><p><input id="sq" value="payment kafka" /> <button class="go" id="sgo" type="button">Search</button></p><div id="sres"></div></div>';
+      async function run() {
+        const q = document.getElementById("sq").value || "payment";
+        const data = await fetch("/api/search?q=" + encodeURIComponent(q)).then(function (r) { return r.json(); });
+        let h = "<p>" + (data.count || 0) + " hit(s)</p><ul>";
+        (data.results || []).forEach(function (r) {
+          h += "<li><strong>" + esc(r.title) + "</strong> <code>" + esc(r.type) + "</code> · score " + r.score +
+            "<br/><span style='color:var(--muted)'>" + esc(r.path) + "</span></li>";
+        });
+        h += "</ul>";
+        document.getElementById("sres").innerHTML = h;
+      }
+      document.getElementById("sgo").onclick = run;
+      run();
+    }
+
+    async function showScan() {
+      titleEl.textContent = "Demo scan";
+      pathEl.textContent = "tests/fixtures/demo-repo";
+      setActive(document.querySelector('[data-view="scan"]'));
+      content.innerHTML = '<div class="md"><h1>Scanning fixture repo…</h1></div>';
+      const data = await fetch("/api/scan-demo").then(function (r) { return r.json(); });
+      let html = '<div class="md"><h1>Demo scan results</h1><pre>' + esc(JSON.stringify(data.summary || data, null, 2)) + "</pre>";
+      html += "<h2>Packages</h2><ul>";
+      (data.packages || []).forEach(function (p) {
+        html += "<li><code>" + esc(p.ecosystem) + "</code> " + esc(p.name) + " v" + esc(String(p.version)) + "</li>";
+      });
+      html += "</ul><h2>IaC</h2><ul>";
+      (data.iac || []).forEach(function (s) {
+        html += "<li><code>" + esc(s.tool) + "</code> " + esc(s.name) + "</li>";
+      });
+      html += "</ul><h2>CI/CD</h2><ul>";
+      (data.cicd || []).forEach(function (p) {
+        html += "<li><code>" + esc(p.platform) + "</code> " + esc(p.name) + "</li>";
+      });
+      html += "</ul><h2>Identity</h2><ul>";
+      ((data.identity && data.identity.identity_providers) || []).forEach(function (p) {
+        html += "<li>" + esc(p.provider) + " (" + (p.evidence || []).length + " evidence files)</li>";
+      });
+      html += "</ul></div>";
+      content.innerHTML = html;
+    }
+
+    async function showReadme() {
+      titleEl.textContent = "README";
+      pathEl.textContent = "README.md";
+      setActive(document.querySelector('[data-view="readme"]'));
+      const text = await fetch("/README.md").then(function (r) { return r.text(); });
+      content.innerHTML = '<div class="md">' + renderMarkdown(text) + "</div>";
+      wireOpeners();
+    }
+
+    async function openSample(rel) {
+      const name = rel.split("/").pop().replace(/\.md$/, "").replace(/-/g, " ");
+      titleEl.textContent = name;
+      pathEl.textContent = "sample-knowledge/" + rel;
+      document.querySelectorAll("nav button").forEach(function (b) { b.classList.remove("active"); });
+      const text = await fetch("/sample-knowledge/" + rel).then(function (r) { return r.text(); });
+      content.innerHTML = '<div class="md">' + renderMarkdown(text) + "</div>";
+      wireOpeners();
+    }
+
+    function buildTree() {
+      const ul = document.getElementById("tree");
+      ul.innerHTML = "";
+      const preferred = [
+        "systems/northstar-commerce.md",
+        "services/order-service.md",
+        "services/payment-service.md",
+        "services/api-gateway.md",
+        "apis/api-gateway.md",
+        "identity/auth0.md",
+        "networks/prod-vpc.md",
+        "pipelines/gha-deploy-prod.md",
+        "infrastructure/tf-network.md",
+        "blast-radius/blast-order-service.md",
+        "decisions/use-event-driven-checkout.md",
+        "dataflows/checkout-flow.md",
+      ];
+      const files = tree.filter(function (f) {
+        return f !== "index.md" && f !== "log.md" && !f.endsWith("/index.md");
+      });
+      const ordered = preferred.filter(function (p) { return files.indexOf(p) >= 0; })
+        .concat(files.filter(function (f) { return preferred.indexOf(f) < 0; }));
+      ordered.slice(0, 28).forEach(function (f) {
+        const li = document.createElement("li");
+        const btn = document.createElement("button");
+        btn.type = "button";
+        const k = kindFor(f);
+        const label = f.split("/").pop().replace(/\.md$/, "");
+        btn.innerHTML = '<span class="dot ' + k + '"></span>' + esc(label);
+        btn.onclick = function () { openSample(f); };
+        li.appendChild(btn);
+        ul.appendChild(li);
+      });
+    }
+
+    document.querySelectorAll("[data-view]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        const v = btn.getAttribute("data-view");
+        if (v === "home") showHome();
+        else if (v === "skills") showSkills();
+        else if (v === "graph") showGraph();
+        else if (v === "blast") showBlast();
+        else if (v === "doctor") showDoctor();
+        else if (v === "search") showSearch();
+        else if (v === "scan") showScan();
+        else if (v === "readme") showReadme();
+      });
+    });
+
+    Promise.all([
+      fetch("/api/meta").then(function (r) { return r.json(); }),
+      fetch("/api/tree").then(function (r) { return r.json(); }),
+    ]).then(function (pair) {
+      meta = pair[0];
+      tree = pair[1].files || [];
+      document.getElementById("version").textContent = "v" + (meta.version || "0.1.0");
+      buildTree();
+      showHome();
+    }).catch(function () { showHome(); });
+  </script>
+</body>
+</html>

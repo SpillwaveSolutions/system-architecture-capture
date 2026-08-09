@@ -1,0 +1,18 @@
+{
+  "name": "sac-plugin-marketplace",
+  "description": "Native Grok marketplace metadata for System Architecture Capture. Grok Build also loads Claude plugins with zero config.",
+  "version": "0.1.0",
+  "plugins": [
+    {
+      "name": "system-architecture-capture",
+      "source": ".",
+      "description": "System Architecture Capture — reverse-engineer systems into OKF/PKC knowledge. Claude-compatible.",
+      "version": "0.1.0",
+      "compatibility": {
+        "claude_plugin": true,
+        "zero_config": true
+      },
+      "repository": "https://github.com/SpillwaveSolutions/system-architecture-capture"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SAC config",
+  "type": "object",
+  "properties": {
+    "sac": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "knowledge_root": { "type": "string" },
+        "pkc_compatible": { "type": "boolean" },
+        "okf_bundle": { "type": "boolean" }
+      }
+    }
+  }
+}

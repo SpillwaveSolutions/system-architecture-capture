@@ -1,0 +1,12 @@
+{
+  "name": "@northstar/platform",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": ["services/*"],
+  "dependencies": {
+    "express": "^4.19.0"
+  },
+  "scripts": {
+    "test": "echo ok"
+  }
+}

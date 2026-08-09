@@ -1,0 +1,23 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "sac-plugin-marketplace",
+  "description": "System Architecture Capture plugins for Claude Code (Grok/Codex/OpenCode compatible)",
+  "owner": {
+    "name": "Rick Hightower",
+    "url": "https://github.com/RichardHightower"
+  },
+  "plugins": [
+    {
+      "name": "system-architecture-capture",
+      "source": "./",
+      "description": "Reverse-engineer application systems (code, IaC, CI/CD, IAM, networking, SSO) into an OKF/PKC architecture knowledge graph.",
+      "version": "0.1.0",
+      "author": { "name": "Rick Hightower" },
+      "homepage": "https://github.com/SpillwaveSolutions/system-architecture-capture",
+      "repository": "https://github.com/SpillwaveSolutions/system-architecture-capture",
+      "license": "MIT",
+      "keywords": ["sac", "architecture", "okf", "pkc", "reverse-engineering", "claude-code"],
+      "category": "productivity"
+    }
+  ]
+}

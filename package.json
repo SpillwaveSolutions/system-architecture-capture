@@ -1,0 +1,20 @@
+{
+  "name": "system-architecture-capture",
+  "version": "0.1.0",
+  "private": true,
+  "description": "System Architecture Capture (SAC) — reverse-engineer modern app systems into OKF/PKC knowledge graphs. Claude / Grok / Codex / OpenCode plugin.",
+  "scripts": {
+    "dev": "node scripts/serve-preview.mjs",
+    "start": "node scripts/serve-preview.mjs",
+    "test": "python3 tests/test_sac.py",
+    "validate": "python3 scripts/sac_validate.py --bundle sample-knowledge",
+    "doctor": "python3 scripts/sac_doctor.py --bundle sample-knowledge",
+    "scan": "python3 scripts/sac_scan.py --help",
+    "typecheck": "python3 -m py_compile scripts/sac_common.py scripts/sac_scan.py scripts/sac_scan_packages.py scripts/sac_scan_containers.py scripts/sac_scan_iac.py scripts/sac_scan_k8s.py scripts/sac_scan_cicd.py scripts/sac_scan_identity.py scripts/sac_graph.py scripts/sac_blast_radius.py scripts/sac_capture.py scripts/sac_validate.py scripts/sac_doctor.py scripts/sac_search.py scripts/sac_pack.py scripts/sac_materialize.py scripts/sac_link.py scripts/sac_ingest_wiki.py scripts/sac_ingest_tickets.py scripts/sac_orchestrate.py",
+    "ci": "bash tools/ci-local.sh"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "MIT"
+}

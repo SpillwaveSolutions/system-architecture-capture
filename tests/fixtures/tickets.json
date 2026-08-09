@@ -1,0 +1,19 @@
+{
+  "issues": [
+    {
+      "key": "NS-101",
+      "title": "Add payment retry",
+      "type": "story",
+      "status": "In Progress",
+      "description": "Retry failed Stripe captures with backoff",
+      "labels": ["payments"]
+    },
+    {
+      "key": "NS-1",
+      "title": "Checkout platform",
+      "type": "epic",
+      "status": "Open",
+      "description": "Epic for checkout services"
+    }
+  ]
+}

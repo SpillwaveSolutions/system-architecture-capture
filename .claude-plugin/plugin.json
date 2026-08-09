@@ -1,0 +1,29 @@
+{
+  "name": "system-architecture-capture",
+  "version": "0.1.0",
+  "description": "System Architecture Capture (SAC) — reverse-engineer microservices, IaC, CI/CD, IAM, networking, SSO, and runtime topology into a durable OKF knowledge graph on top of PKC. Claude Code, Grok Build, Codex, and OpenCode.",
+  "author": {
+    "name": "Rick Hightower",
+    "url": "https://github.com/RichardHightower"
+  },
+  "homepage": "https://github.com/SpillwaveSolutions/system-architecture-capture",
+  "repository": "https://github.com/SpillwaveSolutions/system-architecture-capture",
+  "license": "MIT",
+  "keywords": [
+    "sac",
+    "pkc",
+    "okf",
+    "architecture",
+    "reverse-engineering",
+    "microservices",
+    "iac",
+    "kubernetes",
+    "terraform",
+    "dependency-graph",
+    "blast-radius",
+    "claude-code",
+    "grok-build",
+    "codex",
+    "opencode"
+  ]
+}
