@@ -9,6 +9,7 @@ Zero pip deps — hand-rolled YAML subset matching PKC.
 from __future__ import annotations
 
 import argparse
+import contextlib
 import hashlib
 import json
 import re
@@ -860,8 +861,54 @@ def refresh_catalog_index(bundle: Path, catalog: str) -> None:
     index.write_text(dump_frontmatter(fm) + "\n" + body, encoding="utf-8")
 
 
+@contextlib.contextmanager
+def _file_lock(target: Path):
+    """Advisory lock around a whole-file read-modify-write.
+
+    `append_log` and `refresh_catalog_index` both read a file, edit it in memory
+    and write it back. Two processes whose read/write windows overlap lose one
+    side's change silently -- no error, no conflict marker, invisible unless
+    someone counts entries. Not hypothetical: the PostToolUse hook fires a
+    catalog refresh on every edit.
+
+    O_APPEND is not usable for the log: entries are inserted under today's
+    heading mid-file, not appended at the end.
+
+    Locks the target file itself rather than a sidecar `.lock`, so nothing extra
+    is left in the bundle for `git status` or a directory walk to trip over.
+
+    Best-effort: fcntl is POSIX-only and some filesystems do not support it, so
+    failing to lock degrades to the previous unsynchronised behaviour rather
+    than blocking a capture.
+    """
+    fh = None
+    try:
+        target.parent.mkdir(parents=True, exist_ok=True)
+        fh = open(target, "a+")
+        try:
+            import fcntl
+
+            fcntl.flock(fh.fileno(), fcntl.LOCK_EX)
+        except Exception:
+            pass
+        yield
+    except OSError:
+        yield
+    finally:
+        if fh is not None:
+            try:
+                fh.close()
+            except Exception:
+                pass
+
+
 def append_log(bundle: Path, message: str) -> None:
     log = bundle / "log.md"
+    with _file_lock(log):
+        _append_log_locked(log, message)
+
+
+def _append_log_locked(log: Path, message: str) -> None:
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     entry = f"- {utc_now()}: {message}\n"
     if not log.is_file():
