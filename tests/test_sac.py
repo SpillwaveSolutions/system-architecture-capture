@@ -15,6 +15,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 
 from sac_common import (  # noqa: E402
     append_log,
+    dump_frontmatter,
     ensure_bundle,
     parse_frontmatter,
     slugify,
@@ -158,6 +159,58 @@ class TestIngest(unittest.TestCase):
             self.assertGreater(t["created"] + t["updated"], 0)
 
 
+class TestTicketNormalization(unittest.TestCase):
+    """Raw Jira REST nests everything but `key` under `fields{}`."""
+
+    def test_jira_rest_shape(self):
+        from sac_ingest_tickets import normalize_ticket
+        got = normalize_ticket({
+            "key": "ABC-1",
+            "fields": {
+                "summary": "Configure the widget",
+                "status": {"name": "Done"},
+                "labels": ["x"],
+                "issuetype": {"name": "Epic"},
+                "description": {"type": "doc", "content": [
+                    {"type": "paragraph", "content": [
+                        {"type": "text", "text": "Body here"}]}]},
+            },
+        })
+        self.assertEqual(got["title"], "Configure the widget")
+        self.assertEqual(got["status"], "Done")
+        self.assertEqual(got["labels"], ["x"])
+        self.assertEqual(got["type"], "epic")
+        self.assertIn("Body here", got["body"])
+
+    def test_flat_status_is_not_discarded(self):
+        """Independent precedence bug: a flat `"status": "Done"` became
+        "unknown" whenever `state` was absent, because the conditional read
+        `state` in the else branch."""
+        from sac_ingest_tickets import normalize_ticket
+        self.assertEqual(normalize_ticket({"key": "A-1", "status": "Done"})["status"], "Done")
+
+    def test_github_shape_still_works(self):
+        from sac_ingest_tickets import normalize_ticket
+        got = normalize_ticket({"number": 7, "title": "T", "state": "open", "body": "b"})
+        self.assertEqual(got["status"], "open")
+        self.assertEqual(got["title"], "T")
+
+
+class TestWikiClassify(unittest.TestCase):
+    def test_runbook_gets_the_runbook_type(self):
+        """`Runbook` is a registered type; returning `Design` looked like a
+        leftover, and the skill advertises runbook handling."""
+        from sac_ingest_wiki import classify
+        from sac_validate import load_schema_registry
+        self.assertIn("Runbook", {t["type"] for t in load_schema_registry()["types"]})
+        self.assertEqual(classify("oncall-runbook.md", ""), "Runbook")
+
+    def test_default_type_is_caller_controlled(self):
+        from sac_ingest_wiki import classify
+        self.assertEqual(classify("requirements.md", ""), "Discovery")
+        self.assertEqual(classify("requirements.md", "", default="Requirement"), "Requirement")
+
+
 class TestCurateHook(unittest.TestCase):
     def test_hook_script_is_not_a_no_op(self):
         """It previously consisted of `exit 0`, so the registered PostToolUse
@@ -272,6 +325,44 @@ class TestSchemaPack(unittest.TestCase):
         v = validate_bundle(SAMPLE, schema=True)
         self.assertEqual(v["errors"], 0)
         self.assertGreaterEqual(v["node_count"], 20)
+
+
+class TestFrontmatterRoundTrip(unittest.TestCase):
+    """parse(dump(x)) == x.
+
+    Regression: `_fmt_scalar` escaped backslashes and quotes on write, `_scalar`
+    stripped only the surrounding quotes on read. Every write-modify-write cycle
+    re-escaped already-escaped text, doubling the backslash count each pass, so
+    any maintenance script that edited one field corrupted every quoted string
+    in the file. It was self-concealing too: reading back with the same parser
+    returned a value that looked correct.
+    """
+
+    VALUES = [
+        '[{"a":"b"}]',          # JSON payload — the case that surfaced this
+        "back\\slash",
+        'quote"inside',
+        'both\\"mixed',
+        ":colon",               # forces quoting via the punctuation test
+        "plain",
+    ]
+
+    def test_single_round_trip_is_identity(self):
+        for v in self.VALUES:
+            with self.subTest(value=v):
+                fm = {"type": "Concept", "title": "T", "v": v}
+                self.assertEqual(parse_frontmatter(dump_frontmatter(fm))[0]["v"], v)
+
+    def test_repeated_round_trips_do_not_grow(self):
+        fm = {"type": "Concept", "title": "T", "sources_json": '[{"a":"b"}]'}
+        first = None
+        for _ in range(5):
+            text = dump_frontmatter(fm)
+            line = [l for l in text.splitlines() if l.startswith("sources_json")][0]
+            if first is None:
+                first = line
+            self.assertEqual(line, first, "escaping grew across a round trip")
+            fm, _ = parse_frontmatter(text)
 
 
 class TestWriteConcept(unittest.TestCase):
