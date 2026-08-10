@@ -14,6 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
 from sac_common import (  # noqa: E402
+    dump_frontmatter,
     ensure_bundle,
     parse_frontmatter,
     slugify,
@@ -221,6 +222,44 @@ class TestSchemaPack(unittest.TestCase):
         v = validate_bundle(SAMPLE, schema=True)
         self.assertEqual(v["errors"], 0)
         self.assertGreaterEqual(v["node_count"], 20)
+
+
+class TestFrontmatterRoundTrip(unittest.TestCase):
+    """parse(dump(x)) == x.
+
+    Regression: `_fmt_scalar` escaped backslashes and quotes on write, `_scalar`
+    stripped only the surrounding quotes on read. Every write-modify-write cycle
+    re-escaped already-escaped text, doubling the backslash count each pass, so
+    any maintenance script that edited one field corrupted every quoted string
+    in the file. It was self-concealing too: reading back with the same parser
+    returned a value that looked correct.
+    """
+
+    VALUES = [
+        '[{"a":"b"}]',          # JSON payload — the case that surfaced this
+        "back\\slash",
+        'quote"inside',
+        'both\\"mixed',
+        ":colon",               # forces quoting via the punctuation test
+        "plain",
+    ]
+
+    def test_single_round_trip_is_identity(self):
+        for v in self.VALUES:
+            with self.subTest(value=v):
+                fm = {"type": "Concept", "title": "T", "v": v}
+                self.assertEqual(parse_frontmatter(dump_frontmatter(fm))[0]["v"], v)
+
+    def test_repeated_round_trips_do_not_grow(self):
+        fm = {"type": "Concept", "title": "T", "sources_json": '[{"a":"b"}]'}
+        first = None
+        for _ in range(5):
+            text = dump_frontmatter(fm)
+            line = [l for l in text.splitlines() if l.startswith("sources_json")][0]
+            if first is None:
+                first = line
+            self.assertEqual(line, first, "escaping grew across a round trip")
+            fm, _ = parse_frontmatter(text)
 
 
 class TestWriteConcept(unittest.TestCase):
