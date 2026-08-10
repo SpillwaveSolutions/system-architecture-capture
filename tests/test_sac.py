@@ -14,9 +14,12 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
 from sac_common import (  # noqa: E402
+    CATALOGS,
     dump_frontmatter,
     ensure_bundle,
     parse_frontmatter,
+    refresh_catalog_index,
+    resolve_knowledge_root,
     slugify,
     scrub_text,
     write_concept,
@@ -312,6 +315,79 @@ class TestFrontmatterRoundTrip(unittest.TestCase):
                 first = line
             self.assertEqual(line, first, "escaping grew across a round trip")
             fm, _ = parse_frontmatter(text)
+
+
+class TestCatalogIndex(unittest.TestCase):
+    def _bundle(self, td, title):
+        bundle = Path(td)
+        ensure_bundle(bundle)
+        (bundle / "services").mkdir(exist_ok=True)
+        (bundle / "services" / "x.md").write_text(
+            f"---\ntype: Service\ntitle: {title}\n---\n\n# X\n", encoding="utf-8")
+        refresh_catalog_index(bundle, "services")
+        return (bundle / "services" / "index.md").read_text(encoding="utf-8")
+
+    def test_bracketed_title_still_yields_a_parseable_link(self):
+        """A title like `[AREA] Thing` must not render as `[[AREA] Thing](...)`.
+
+        okf-graph's link regex cannot match a nested-bracket label, and the
+        result is a MISSING edge, not a broken one — validate only reports
+        broken edges, so the concept silently loses its catalog backlink."""
+        import re
+        with tempfile.TemporaryDirectory() as td:
+            body = self._bundle(td, "[AREA] Thing")
+        line = [l for l in body.splitlines() if l.startswith("- [")][0]
+
+        # 1. The brackets are backslash-escaped, which is what CommonMark asks
+        #    for and what stops the label from opening a nested pair.
+        self.assertIn(r"\[AREA\]", line, f"label not escaped: {line!r}")
+
+        # 2. A bracket-aware reader recovers the target.
+        aware = re.compile(r"\[((?:\\.|\[[^\[\]]*\]|[^\]])+)\]\(([^)]+)\)")
+        found = aware.findall(line)
+        self.assertTrue(found, f"unparseable catalog entry: {line!r}")
+        self.assertEqual(found[0][1], "/services/x.md")
+
+        # 3. Worth stating explicitly: escaping alone does NOT rescue a reader
+        #    whose label class is `[^\]]+`, because that class has no notion of
+        #    an escape and still stops at the literal `]`. This fix therefore
+        #    depends on the matching reader change landing too — neither half
+        #    is sufficient alone.
+        strict = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
+        self.assertFalse(strict.findall(line))
+
+    def test_refuses_a_catalog_this_plugin_does_not_declare(self):
+        """Bundles are shared with sibling plugins that own other catalogs and
+        render them differently. Rewriting one of theirs into our format is not
+        ours to do."""
+        self.assertNotIn("lakehouses", CATALOGS)
+        with tempfile.TemporaryDirectory() as td:
+            bundle = Path(td)
+            ensure_bundle(bundle)
+            foreign = bundle / "lakehouses"
+            foreign.mkdir()
+            marker = "- [Untouched](/lakehouses/a.md) · annotated\n"
+            (foreign / "index.md").write_text(marker, encoding="utf-8")
+            refresh_catalog_index(bundle, "lakehouses")
+            self.assertEqual((foreign / "index.md").read_text(encoding="utf-8"), marker)
+
+
+class TestResolveKnowledgeRoot(unittest.TestCase):
+    def test_configured_root_wins_when_initialized(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = Path(td)
+            for name in ("knowledge", "sample-knowledge"):
+                (repo / name).mkdir()
+                (repo / name / "index.md").write_text("# x\n", encoding="utf-8")
+            self.assertEqual(resolve_knowledge_root(repo).name, "knowledge")
+
+    def test_falls_back_to_sample_only_when_intended_root_is_not_a_bundle(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = Path(td)
+            (repo / "knowledge").mkdir()          # exists but has no index.md
+            (repo / "sample-knowledge").mkdir()
+            (repo / "sample-knowledge" / "index.md").write_text("# x\n", encoding="utf-8")
+            self.assertEqual(resolve_knowledge_root(repo).name, "sample-knowledge")
 
 
 class TestWriteConcept(unittest.TestCase):
