@@ -16,12 +16,12 @@ from sac_scan import full_scan  # noqa: E402
 
 def materialize_repos(bundle: Path, repos: list[Path], system_name: str) -> dict:
     ensure_bundle(bundle, system_name)
-    total = {"created": 0, "updated": 0, "skipped": 0, "repos": []}
+    total = {"created": 0, "updated": 0, "skipped": 0, "refused": 0, "repos": []}
     for repo in repos:
         scan = full_scan(repo)
         stats = capture_scan(bundle, scan, system_name=system_name)
         total["repos"].append({"root": str(repo), "summary": scan.get("summary"), "stats": stats})
-        for k in ("created", "updated", "skipped"):
+        for k in ("created", "updated", "skipped", "refused"):
             total[k] += stats.get(k, 0)
     return total
 
@@ -42,7 +42,10 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(result, indent=2, default=str))
     else:
         print(f"Materialized into {bundle}")
-        print(f"created={result['created']} updated={result['updated']} skipped={result['skipped']}")
+        print(
+            f"created={result['created']} updated={result['updated']} "
+            f"skipped={result['skipped']} refused={result['refused']}"
+        )
         for r in result["repos"]:
             print(f"  {r['root']}: {r['summary']}")
     return 0

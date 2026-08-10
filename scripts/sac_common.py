@@ -740,12 +740,32 @@ def write_concept(
     body: str,
     *,
     merge: bool = True,
+    create_only: bool = False,
 ) -> tuple[Path, str]:
+    """Write a concept. Returns (path, action).
+
+    action is one of "created", "updated", "skipped", "exists", "refused".
+
+    - "skipped"  — content was byte-identical; nothing to do.
+    - "exists"   — create_only and the file was already there.
+    - "refused"  — a truth_state barrier blocked the write.
+
+    "refused" used to be reported as "skipped", which made a rejected write
+    indistinguishable from a no-op: a caller that wrote a concept and got back
+    "skipped" reported success having written nothing.
+
+    create_only exists because `merge` protects frontmatter, never the body — a
+    non-empty body always wins, which is right for re-capture and wrong for a
+    scaffolding pass. Without a create-only mode the caller has to implement the
+    guard, and forgetting is silent and total.
+    """
     path = bundle / rel_path.lstrip("/")
     path.parent.mkdir(parents=True, exist_ok=True)
     if "timestamp" not in frontmatter:
         frontmatter = {**frontmatter, "timestamp": utc_now()}
     if path.is_file():
+        if create_only:
+            return path, "exists"
         existing = path.read_text(encoding="utf-8")
         if merge:
             old_fm, old_body = parse_frontmatter(existing)
@@ -754,7 +774,7 @@ def write_concept(
                 "truth_state", "current"
             ) == "current":
                 if not frontmatter.get("force"):
-                    return path, "skipped"
+                    return path, "refused"
             new_fm = {**old_fm, **{k: v for k, v in frontmatter.items() if k != "force"}}
             if "timestamp" in old_fm and old_fm.get("title") == new_fm.get("title"):
                 if frontmatter.get("stable_timestamp"):

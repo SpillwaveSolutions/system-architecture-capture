@@ -213,6 +213,56 @@ class TestWikiClassify(unittest.TestCase):
         self.assertEqual(classify("requirements.md", "", default="Requirement"), "Requirement")
 
 
+class TestWriteConceptModes(unittest.TestCase):
+    def _bundle(self, td):
+        b = Path(td)
+        ensure_bundle(b)
+        return b
+
+    def test_create_only_does_not_touch_an_existing_body(self):
+        """`merge` protects frontmatter, never the body — a non-empty body
+        always wins. Right for re-capture, catastrophic for a scaffolding pass
+        re-run after enrichment, which flattens every concept back to a stub and
+        reports "updated" for each one."""
+        with tempfile.TemporaryDirectory() as td:
+            b = self._bundle(td)
+            fm = {"type": "Service", "title": "X"}
+            write_concept(b, "services/x.md", fm, "# X\n\nEnriched body\n")
+            _, action = write_concept(b, "services/x.md", fm, "# X\n\nStub\n",
+                                      create_only=True)
+            self.assertEqual(action, "exists")
+            self.assertIn("Enriched body", (b / "services" / "x.md").read_text(encoding="utf-8"))
+
+    def test_default_still_replaces_the_body(self):
+        """Unchanged behaviour: this is what re-capture depends on."""
+        with tempfile.TemporaryDirectory() as td:
+            b = self._bundle(td)
+            fm = {"type": "Service", "title": "X"}
+            write_concept(b, "services/x.md", fm, "# X\n\nOld\n")
+            _, action = write_concept(b, "services/x.md", fm, "# X\n\nNew\n")
+            self.assertEqual(action, "updated")
+            self.assertIn("New", (b / "services" / "x.md").read_text(encoding="utf-8"))
+
+    def test_truth_state_refusal_is_distinguishable_from_a_no_op(self):
+        """Both used to return "skipped", so a caller could not tell "already
+        correct" from "refused to write, your change was discarded"."""
+        with tempfile.TemporaryDirectory() as td:
+            b = self._bundle(td)
+            write_concept(b, "services/x.md",
+                          {"type": "Service", "title": "X", "truth_state": "superseded"},
+                          "# X\n\nBody\n")
+            _, refused = write_concept(b, "services/x.md",
+                                       {"type": "Service", "title": "X"}, "# X\n\nNew\n")
+            self.assertEqual(refused, "refused")
+
+            b2 = Path(td) / "b2"
+            ensure_bundle(b2)
+            fm = {"type": "Service", "title": "Y", "stable_timestamp": True}
+            write_concept(b2, "services/y.md", fm, "# Y\n\nSame\n")
+            _, noop = write_concept(b2, "services/y.md", {**fm}, "# Y\n\nSame\n")
+            self.assertEqual(noop, "skipped")
+
+
 class TestC4(unittest.TestCase):
     def test_inventory_and_generate(self):
         from sac_c4 import inventory, generate_views, classify_c4
