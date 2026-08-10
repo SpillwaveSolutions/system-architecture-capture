@@ -15,9 +15,12 @@ sys.path.insert(0, str(ROOT / "scripts"))
 
 from sac_common import (  # noqa: E402
     append_log,
+    CATALOGS,
     dump_frontmatter,
     ensure_bundle,
     parse_frontmatter,
+    refresh_catalog_index,
+    resolve_knowledge_root,
     slugify,
     scrub_text,
     write_concept,
@@ -261,6 +264,56 @@ class TestAppendLog(unittest.TestCase):
             self.assertEqual(list(bundle.glob("*.lock")), [])
 
 
+class TestWriteConceptModes(unittest.TestCase):
+    def _bundle(self, td):
+        b = Path(td)
+        ensure_bundle(b)
+        return b
+
+    def test_create_only_does_not_touch_an_existing_body(self):
+        """`merge` protects frontmatter, never the body — a non-empty body
+        always wins. Right for re-capture, catastrophic for a scaffolding pass
+        re-run after enrichment, which flattens every concept back to a stub and
+        reports "updated" for each one."""
+        with tempfile.TemporaryDirectory() as td:
+            b = self._bundle(td)
+            fm = {"type": "Service", "title": "X"}
+            write_concept(b, "services/x.md", fm, "# X\n\nEnriched body\n")
+            _, action = write_concept(b, "services/x.md", fm, "# X\n\nStub\n",
+                                      create_only=True)
+            self.assertEqual(action, "exists")
+            self.assertIn("Enriched body", (b / "services" / "x.md").read_text(encoding="utf-8"))
+
+    def test_default_still_replaces_the_body(self):
+        """Unchanged behaviour: this is what re-capture depends on."""
+        with tempfile.TemporaryDirectory() as td:
+            b = self._bundle(td)
+            fm = {"type": "Service", "title": "X"}
+            write_concept(b, "services/x.md", fm, "# X\n\nOld\n")
+            _, action = write_concept(b, "services/x.md", fm, "# X\n\nNew\n")
+            self.assertEqual(action, "updated")
+            self.assertIn("New", (b / "services" / "x.md").read_text(encoding="utf-8"))
+
+    def test_truth_state_refusal_is_distinguishable_from_a_no_op(self):
+        """Both used to return "skipped", so a caller could not tell "already
+        correct" from "refused to write, your change was discarded"."""
+        with tempfile.TemporaryDirectory() as td:
+            b = self._bundle(td)
+            write_concept(b, "services/x.md",
+                          {"type": "Service", "title": "X", "truth_state": "superseded"},
+                          "# X\n\nBody\n")
+            _, refused = write_concept(b, "services/x.md",
+                                       {"type": "Service", "title": "X"}, "# X\n\nNew\n")
+            self.assertEqual(refused, "refused")
+
+            b2 = Path(td) / "b2"
+            ensure_bundle(b2)
+            fm = {"type": "Service", "title": "Y", "stable_timestamp": True}
+            write_concept(b2, "services/y.md", fm, "# Y\n\nSame\n")
+            _, noop = write_concept(b2, "services/y.md", {**fm}, "# Y\n\nSame\n")
+            self.assertEqual(noop, "skipped")
+
+
 class TestC4(unittest.TestCase):
     def test_inventory_and_generate(self):
         from sac_c4 import inventory, generate_views, classify_c4
@@ -363,6 +416,79 @@ class TestFrontmatterRoundTrip(unittest.TestCase):
                 first = line
             self.assertEqual(line, first, "escaping grew across a round trip")
             fm, _ = parse_frontmatter(text)
+
+
+class TestCatalogIndex(unittest.TestCase):
+    def _bundle(self, td, title):
+        bundle = Path(td)
+        ensure_bundle(bundle)
+        (bundle / "services").mkdir(exist_ok=True)
+        (bundle / "services" / "x.md").write_text(
+            f"---\ntype: Service\ntitle: {title}\n---\n\n# X\n", encoding="utf-8")
+        refresh_catalog_index(bundle, "services")
+        return (bundle / "services" / "index.md").read_text(encoding="utf-8")
+
+    def test_bracketed_title_still_yields_a_parseable_link(self):
+        """A title like `[AREA] Thing` must not render as `[[AREA] Thing](...)`.
+
+        okf-graph's link regex cannot match a nested-bracket label, and the
+        result is a MISSING edge, not a broken one — validate only reports
+        broken edges, so the concept silently loses its catalog backlink."""
+        import re
+        with tempfile.TemporaryDirectory() as td:
+            body = self._bundle(td, "[AREA] Thing")
+        line = [l for l in body.splitlines() if l.startswith("- [")][0]
+
+        # 1. The brackets are backslash-escaped, which is what CommonMark asks
+        #    for and what stops the label from opening a nested pair.
+        self.assertIn(r"\[AREA\]", line, f"label not escaped: {line!r}")
+
+        # 2. A bracket-aware reader recovers the target.
+        aware = re.compile(r"\[((?:\\.|\[[^\[\]]*\]|[^\]])+)\]\(([^)]+)\)")
+        found = aware.findall(line)
+        self.assertTrue(found, f"unparseable catalog entry: {line!r}")
+        self.assertEqual(found[0][1], "/services/x.md")
+
+        # 3. Worth stating explicitly: escaping alone does NOT rescue a reader
+        #    whose label class is `[^\]]+`, because that class has no notion of
+        #    an escape and still stops at the literal `]`. This fix therefore
+        #    depends on the matching reader change landing too — neither half
+        #    is sufficient alone.
+        strict = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
+        self.assertFalse(strict.findall(line))
+
+    def test_refuses_a_catalog_this_plugin_does_not_declare(self):
+        """Bundles are shared with sibling plugins that own other catalogs and
+        render them differently. Rewriting one of theirs into our format is not
+        ours to do."""
+        self.assertNotIn("lakehouses", CATALOGS)
+        with tempfile.TemporaryDirectory() as td:
+            bundle = Path(td)
+            ensure_bundle(bundle)
+            foreign = bundle / "lakehouses"
+            foreign.mkdir()
+            marker = "- [Untouched](/lakehouses/a.md) · annotated\n"
+            (foreign / "index.md").write_text(marker, encoding="utf-8")
+            refresh_catalog_index(bundle, "lakehouses")
+            self.assertEqual((foreign / "index.md").read_text(encoding="utf-8"), marker)
+
+
+class TestResolveKnowledgeRoot(unittest.TestCase):
+    def test_configured_root_wins_when_initialized(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = Path(td)
+            for name in ("knowledge", "sample-knowledge"):
+                (repo / name).mkdir()
+                (repo / name / "index.md").write_text("# x\n", encoding="utf-8")
+            self.assertEqual(resolve_knowledge_root(repo).name, "knowledge")
+
+    def test_falls_back_to_sample_only_when_intended_root_is_not_a_bundle(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = Path(td)
+            (repo / "knowledge").mkdir()          # exists but has no index.md
+            (repo / "sample-knowledge").mkdir()
+            (repo / "sample-knowledge" / "index.md").write_text("# x\n", encoding="utf-8")
+            self.assertEqual(resolve_knowledge_root(repo).name, "sample-knowledge")
 
 
 class TestWriteConcept(unittest.TestCase):

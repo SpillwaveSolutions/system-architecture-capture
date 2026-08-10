@@ -499,15 +499,26 @@ def resolve_knowledge_root(repo_root: Path, override: str | None = None) -> Path
         return root if root.is_absolute() else (repo_root / root)
     cfg = load_config(repo_root)
     name = cfg.get("knowledge_root") or "knowledge"
+    intended = repo_root / name
     for candidate in (
-        repo_root / name,
+        intended,
         repo_root / "sample-knowledge",
         repo_root / ".okf",
         repo_root / "knowledge",
     ):
         if candidate.is_dir() and (candidate / "index.md").is_file():
+            # Say so when we did NOT land on the intended root. Falling through
+            # to `sample-knowledge/` is easy to hit — the plugin repo ships one,
+            # so any capture run inside a clone before initializing a bundle
+            # writes there — and previously nothing said which root was used.
+            if candidate != intended:
+                print(
+                    f"sac: '{intended}' is not an initialized bundle; "
+                    f"using '{candidate}' instead. Pass --bundle to be explicit.",
+                    file=sys.stderr,
+                )
             return candidate
-    return repo_root / name
+    return intended
 
 
 def _parse_simple_yaml(text: str) -> dict[str, Any]:
@@ -730,12 +741,32 @@ def write_concept(
     body: str,
     *,
     merge: bool = True,
+    create_only: bool = False,
 ) -> tuple[Path, str]:
+    """Write a concept. Returns (path, action).
+
+    action is one of "created", "updated", "skipped", "exists", "refused".
+
+    - "skipped"  — content was byte-identical; nothing to do.
+    - "exists"   — create_only and the file was already there.
+    - "refused"  — a truth_state barrier blocked the write.
+
+    "refused" used to be reported as "skipped", which made a rejected write
+    indistinguishable from a no-op: a caller that wrote a concept and got back
+    "skipped" reported success having written nothing.
+
+    create_only exists because `merge` protects frontmatter, never the body — a
+    non-empty body always wins, which is right for re-capture and wrong for a
+    scaffolding pass. Without a create-only mode the caller has to implement the
+    guard, and forgetting is silent and total.
+    """
     path = bundle / rel_path.lstrip("/")
     path.parent.mkdir(parents=True, exist_ok=True)
     if "timestamp" not in frontmatter:
         frontmatter = {**frontmatter, "timestamp": utc_now()}
     if path.is_file():
+        if create_only:
+            return path, "exists"
         existing = path.read_text(encoding="utf-8")
         if merge:
             old_fm, old_body = parse_frontmatter(existing)
@@ -744,7 +775,7 @@ def write_concept(
                 "truth_state", "current"
             ) == "current":
                 if not frontmatter.get("force"):
-                    return path, "skipped"
+                    return path, "refused"
             new_fm = {**old_fm, **{k: v for k, v in frontmatter.items() if k != "force"}}
             if "timestamp" in old_fm and old_fm.get("title") == new_fm.get("title"):
                 if frontmatter.get("stable_timestamp"):
@@ -785,7 +816,26 @@ def ensure_catalog_index(bundle: Path, catalog: str, title: str | None = None) -
     return index
 
 
+def _escape_link_label(label: str) -> str:
+    """Make a concept title safe to use as a Markdown link label.
+
+    Kept as one function so the catalog renderers cannot drift apart on it.
+    """
+    return label.replace("[", "\\[").replace("]", "\\]")
+
+
 def refresh_catalog_index(bundle: Path, catalog: str) -> None:
+    # Refuse catalogs this plugin does not declare. Bundles are routinely shared
+    # with the sibling capture plugins, which own catalogs we know nothing about
+    # and render them differently — so driving this renderer over one of theirs
+    # rewrites their file into our format. Every built-in caller passes a
+    # declared catalog; the exposure is an outside caller iterating directories.
+    #
+    # This does NOT make a shared bundle stable on its own: for a catalog two
+    # plugins both declare, this guard passes in both. That needs the renderers
+    # to agree on a format, which is a cross-repo conversation.
+    if catalog not in CATALOGS:
+        return
     cat_dir = bundle / catalog
     if not cat_dir.is_dir():
         return
@@ -800,7 +850,12 @@ def refresh_catalog_index(bundle: Path, catalog: str) -> None:
         if p.name == "index.md":
             continue
         fm_c, _ = parse_frontmatter(p.read_text(encoding="utf-8"))
-        label = fm_c.get("title") or p.stem
+        # Escape brackets: an unescaped `[AREA]` title renders as
+        # `[[AREA]](/cat/x.md)`, which okf-graph's link regex cannot match. That
+        # yields a MISSING edge rather than a broken one, and validate only
+        # reports broken edges — so the concept silently loses its catalog
+        # backlink. Bracketed titles are ordinary in exported wiki content.
+        label = _escape_link_label(fm_c.get("title") or p.stem)
         entries.append(f"- [{label}](/{catalog}/{p.name})")
     body += "\n".join(entries) + ("\n" if entries else "_None yet._\n")
     index.write_text(dump_frontmatter(fm) + "\n" + body, encoding="utf-8")
