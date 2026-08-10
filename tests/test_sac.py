@@ -158,6 +158,58 @@ class TestIngest(unittest.TestCase):
             self.assertGreater(t["created"] + t["updated"], 0)
 
 
+class TestTicketNormalization(unittest.TestCase):
+    """Raw Jira REST nests everything but `key` under `fields{}`."""
+
+    def test_jira_rest_shape(self):
+        from sac_ingest_tickets import normalize_ticket
+        got = normalize_ticket({
+            "key": "ABC-1",
+            "fields": {
+                "summary": "Configure the widget",
+                "status": {"name": "Done"},
+                "labels": ["x"],
+                "issuetype": {"name": "Epic"},
+                "description": {"type": "doc", "content": [
+                    {"type": "paragraph", "content": [
+                        {"type": "text", "text": "Body here"}]}]},
+            },
+        })
+        self.assertEqual(got["title"], "Configure the widget")
+        self.assertEqual(got["status"], "Done")
+        self.assertEqual(got["labels"], ["x"])
+        self.assertEqual(got["type"], "epic")
+        self.assertIn("Body here", got["body"])
+
+    def test_flat_status_is_not_discarded(self):
+        """Independent precedence bug: a flat `"status": "Done"` became
+        "unknown" whenever `state` was absent, because the conditional read
+        `state` in the else branch."""
+        from sac_ingest_tickets import normalize_ticket
+        self.assertEqual(normalize_ticket({"key": "A-1", "status": "Done"})["status"], "Done")
+
+    def test_github_shape_still_works(self):
+        from sac_ingest_tickets import normalize_ticket
+        got = normalize_ticket({"number": 7, "title": "T", "state": "open", "body": "b"})
+        self.assertEqual(got["status"], "open")
+        self.assertEqual(got["title"], "T")
+
+
+class TestWikiClassify(unittest.TestCase):
+    def test_runbook_gets_the_runbook_type(self):
+        """`Runbook` is a registered type; returning `Design` looked like a
+        leftover, and the skill advertises runbook handling."""
+        from sac_ingest_wiki import classify
+        from sac_validate import load_schema_registry
+        self.assertIn("Runbook", {t["type"] for t in load_schema_registry()["types"]})
+        self.assertEqual(classify("oncall-runbook.md", ""), "Runbook")
+
+    def test_default_type_is_caller_controlled(self):
+        from sac_ingest_wiki import classify
+        self.assertEqual(classify("requirements.md", ""), "Discovery")
+        self.assertEqual(classify("requirements.md", "", default="Requirement"), "Requirement")
+
+
 class TestC4(unittest.TestCase):
     def test_inventory_and_generate(self):
         from sac_c4 import inventory, generate_views, classify_c4
