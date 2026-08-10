@@ -7,6 +7,7 @@ import argparse
 import json
 import sys
 from pathlib import Path
+from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from sac_common import (  # noqa: E402
@@ -21,26 +22,79 @@ from sac_common import (  # noqa: E402
 )
 
 
+def _adf_to_text(node: Any) -> str:
+    """Flatten Atlassian Document Format to plain text.
+
+    Jira's REST v3 returns descriptions as a document tree, not a string. Passing
+    the dict through `str()` yields a Python repr of nested dicts, which is worse
+    than empty. Only the text-bearing nodes matter here.
+    """
+    if isinstance(node, str):
+        return node
+    if isinstance(node, list):
+        return "".join(_adf_to_text(n) for n in node)
+    if not isinstance(node, dict):
+        return ""
+    if node.get("type") == "text":
+        return node.get("text") or ""
+    if node.get("type") in ("hardBreak", "paragraph", "heading", "listItem"):
+        return _adf_to_text(node.get("content")) + "\n"
+    return _adf_to_text(node.get("content"))
+
+
+def _name_of(value: Any) -> str | None:
+    """Jira wraps status/type/priority as {"name": ...}; other trackers use a
+    bare string. Accept both rather than assuming one."""
+    if isinstance(value, dict):
+        return value.get("name") or value.get("value") or None
+    return value or None
+
+
 def normalize_ticket(item: dict) -> dict:
-    """Accept heterogeneous ticket JSON shapes."""
-    key = item.get("key") or item.get("id") or item.get("number") or item.get("identifier")
-    title = item.get("title") or item.get("summary") or item.get("name") or str(key)
-    body = item.get("body") or item.get("description") or item.get("content") or ""
-    status = item.get("status") or (item.get("state") or {}).get("name") if isinstance(item.get("state"), dict) else item.get("state")
-    labels = item.get("labels") or item.get("tags") or []
+    """Accept heterogeneous ticket JSON shapes, including raw Jira REST.
+
+    Jira's search API nests almost everything under `fields{}`:
+
+        {"key": "ABC-1", "fields": {"summary": ..., "status": {"name": ...}}}
+
+    Only `key` sits where a flat reader expects it, so previously every Jira
+    ticket fell through to `str(key)` for its title and lost description,
+    status, labels and type entirely — while the ingest reported success.
+    """
+    # `key` and `id` stay at the top level in Jira; everything else moves.
+    fields = item.get("fields") if isinstance(item.get("fields"), dict) else {}
+    src = {**fields, **{k: v for k, v in item.items() if k != "fields"}}
+    # Values that live ONLY under fields must not be shadowed by a top-level
+    # absence, so read from fields first and fall back to the merged view.
+    def pick(*names: str) -> Any:
+        for n in names:
+            if fields.get(n) not in (None, "", []):
+                return fields[n]
+        for n in names:
+            if src.get(n) not in (None, "", []):
+                return src[n]
+        return None
+
+    key = pick("key", "id", "number", "identifier")
+    title = pick("title", "summary", "name") or str(key)
+    body = pick("body", "description", "content") or ""
+    if not isinstance(body, str):
+        body = _adf_to_text(body)
+    # Previously this read `item.get("state")` whenever `state` was not a dict,
+    # which discarded a perfectly good flat `"status": "Done"`.
+    status = _name_of(pick("status", "state")) or "unknown"
+    labels = pick("labels", "tags") or []
     if labels and isinstance(labels[0], dict):
         labels = [l.get("name") for l in labels if l.get("name")]
-    ttype = item.get("type") or item.get("issue_type") or item.get("issuetype") or "story"
-    if isinstance(ttype, dict):
-        ttype = ttype.get("name") or "story"
+    ttype = _name_of(pick("type", "issue_type", "issuetype")) or "story"
     return {
         "key": str(key),
         "title": str(title),
         "body": str(body)[:8000],
-        "status": str(status or "unknown"),
+        "status": str(status),
         "labels": labels,
         "type": str(ttype).lower(),
-        "url": item.get("url") or item.get("html_url") or item.get("webUrl"),
+        "url": pick("url", "html_url", "webUrl", "self"),
     }
 
 
