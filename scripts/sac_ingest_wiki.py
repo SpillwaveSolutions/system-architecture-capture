@@ -26,25 +26,38 @@ GLOSSARY_HINT = re.compile(r"(?i)\b(glossary|terminology|definitions)\b")
 RUNBOOK_HINT = re.compile(r"(?i)\b(runbook|playbook|on-?call|incident)\b")
 
 
-def classify(name: str, text: str) -> str:
+def classify(name: str, text: str, default: str = "Discovery") -> str:
+    """Best-effort type from three hints, else `default`.
+
+    The fallback is a guess and nothing downstream can tell it apart from a
+    match, so `ingest_dir` counts how often it fires and reports it. Type drives
+    catalog placement, which drives what `impact` and `pack` return — a whole
+    wiki export landing in `discoveries/` is not a labelling nicety.
+    """
     if ADR_HINT.search(name) or ADR_HINT.search(text[:500]):
         return "DecisionRecord"
     if GLOSSARY_HINT.search(name) or GLOSSARY_HINT.search(text[:500]):
         return "GlossaryTerm"
     if RUNBOOK_HINT.search(name) or RUNBOOK_HINT.search(text[:500]):
-        return "Design"
-    return "Discovery"
+        # Was "Design", which looks like a leftover: `Runbook` is a registered
+        # type and the skill advertises runbook handling.
+        return "Runbook"
+    return default
 
 
-def ingest_dir(bundle: Path, source: Path) -> dict:
-    stats = {"created": 0, "updated": 0, "skipped": 0}
+def ingest_dir(bundle: Path, source: Path, default_type: str = "Discovery") -> dict:
+    stats = {"created": 0, "updated": 0, "skipped": 0, "unclassified": 0}
     files = list(source.rglob("*.md")) if source.is_dir() else [source]
     for f in files:
         if f.name.lower() in ("readme.md", "index.md"):
             continue
         raw = f.read_text(encoding="utf-8", errors="replace")
         clean, _ = scrub_text(raw)
-        ctype = classify(f.name, clean)
+        ctype = classify(f.name, clean, default=default_type)
+        if ctype == default_type and not (
+            ADR_HINT.search(f.name) or GLOSSARY_HINT.search(f.name) or RUNBOOK_HINT.search(f.name)
+        ):
+            stats["unclassified"] += 1
         title = f.stem.replace("-", " ").replace("_", " ").title()
         # first markdown heading
         m = re.search(r"(?m)^#\s+(.+)$", clean)
@@ -82,10 +95,16 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("source", help="File or directory of markdown exports")
     p.add_argument("--repo", default=".")
     p.add_argument("--bundle", default=None)
+    p.add_argument(
+        "--default-type",
+        default="Discovery",
+        help="Type for pages no hint matches. The fallback is a guess; the "
+             "reported 'unclassified' count says how often it fired.",
+    )
     args = p.parse_args(argv)
     bundle = resolve_knowledge_root(Path(args.repo).resolve(), args.bundle)
     ensure_bundle(bundle)
-    stats = ingest_dir(bundle, Path(args.source).resolve())
+    stats = ingest_dir(bundle, Path(args.source).resolve(), default_type=args.default_type)
     print(stats)
     return 0
 
