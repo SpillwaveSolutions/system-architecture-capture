@@ -14,6 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
 from sac_common import (  # noqa: E402
+    append_log,
     ensure_bundle,
     parse_frontmatter,
     slugify,
@@ -155,6 +156,56 @@ class TestIngest(unittest.TestCase):
                 json.loads((ROOT / "tests" / "fixtures" / "tickets.json").read_text()),
             )
             self.assertGreater(t["created"] + t["updated"], 0)
+
+
+class TestCurateHook(unittest.TestCase):
+    def test_hook_script_is_not_a_no_op(self):
+        """It previously consisted of `exit 0`, so the registered PostToolUse
+        hook fired and did nothing. Guard against silently reverting to that."""
+        script = (ROOT / "scripts" / "sac-curate.sh").read_text(encoding="utf-8")
+        self.assertIn("refresh_catalog_index", script)
+
+    def test_hook_refreshes_the_edited_files_catalog(self):
+        import subprocess
+        with tempfile.TemporaryDirectory() as td:
+            bundle = Path(td) / "knowledge"
+            (bundle / "services").mkdir(parents=True)
+            (bundle / "index.md").write_text(
+                "---\ntype: Bundle\ntitle: T\n---\n\n# T\n", encoding="utf-8")
+            edited = bundle / "services" / "x.md"
+            edited.write_text(
+                "---\ntype: Service\ntitle: Alpha Service\n---\n\n# Alpha\n", encoding="utf-8")
+            env = {
+                **__import__("os").environ,
+                "CLAUDE_PLUGIN_ROOT": str(ROOT),
+                "CLAUDE_TOOL_FILE_PATH": str(edited),
+            }
+            subprocess.run(["bash", str(ROOT / "scripts" / "sac-curate.sh")],
+                           env=env, capture_output=True, timeout=60)
+            index = bundle / "services" / "index.md"
+            self.assertTrue(index.is_file(), "hook did not create the catalog index")
+            self.assertIn("Alpha Service", index.read_text(encoding="utf-8"))
+
+
+class TestAppendLog(unittest.TestCase):
+    def test_entries_are_not_lost(self):
+        with tempfile.TemporaryDirectory() as td:
+            bundle = Path(td)
+            ensure_bundle(bundle)
+            for i in range(6):
+                append_log(bundle, f"entry {i}")
+            body = (bundle / "log.md").read_text(encoding="utf-8")
+        for i in range(6):
+            self.assertIn(f"entry {i}", body)
+
+    def test_no_sidecar_lock_file_is_left_in_the_bundle(self):
+        """The lock targets the log itself; a `.lock` sidecar would show up in
+        git status and in any directory walk over the bundle."""
+        with tempfile.TemporaryDirectory() as td:
+            bundle = Path(td)
+            ensure_bundle(bundle)
+            append_log(bundle, "one")
+            self.assertEqual(list(bundle.glob("*.lock")), [])
 
 
 class TestC4(unittest.TestCase):
