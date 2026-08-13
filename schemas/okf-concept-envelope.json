@@ -30,8 +30,8 @@
     },
     "truth_state": {
       "type": "string",
-      "enum": ["current", "snapshot", "superseded", "archived"],
-      "description": "PKC/OKF truth barrier for materialization"
+      "enum": ["current", "snapshot", "superseded", "archived", "historical", "proposed"],
+      "description": "Union of PKC/SAC and DEKC truth-state vocabularies. Soft-validated."
     },
     "generated": {
       "type": "boolean",
