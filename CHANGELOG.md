@@ -2,7 +2,15 @@
 
 Notable changes to **system-architecture-capture**. Newest first.
 
+## 0.3.1 — 2026-08-13
+
+### Changed
+
+- **`okf-concept-envelope.json` `truth_state`** now accepts the union of PKC/SAC
+  and DEKC values so a mixed second brain validates.
+
 ## 0.3.0 — 2026-08-10
+
 
 Ten fixes, all found by running this plugin alongside `project-knowledge-capture`
 and `data-engineering-knowledge-capture` against a single shared bundle.
