@@ -1,7 +1,7 @@
 {
   "name": "system-architecture-capture",
-  "version": "0.3.0",
-  "description": "System Architecture Capture (SAC) for Codex — reverse-engineer repos into OKF/PKC architecture knowledge graphs.",
+  "version": "0.4.0",
+  "description": "System Architecture Capture for Codex. Same skills and hooks as Claude Code / Grok Build, plus isolation session helpers.",
   "skills": "skills/",
   "agents": "agents/",
   "commands": "commands/",
@@ -12,5 +12,6 @@
     "skills_md": true
   },
   "repository": "https://github.com/SpillwaveSolutions/system-architecture-capture",
-  "license": "MIT"
+  "license": "MIT",
+  "hooks": "hooks/hooks.json"
 }

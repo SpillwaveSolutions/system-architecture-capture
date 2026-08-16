@@ -8,8 +8,13 @@ SAC builds a **second brain** for repos/monorepos by reverse-engineering modern 
 |------|----------|
 | Claude Code | `.claude-plugin/` |
 | Grok Build | `.grok-plugin/` (+ Claude zero-config) |
-| Codex | `.codex-plugin/plugin.json` + `skills/` |
+| Codex | `.codex-plugin/plugin.json` + `hooks/hooks.json` + `skills/` |
 | OpenCode | `.opencode-plugin/plugin.json` + `skills/` |
+| Agent Plugins 1.0 | Root `plugin.json` |
+| Grok Bot | Skills + `docs/GROK_BOT.md` (not a Claude-style install) |
+| LangChain Deep Agents | `skills=` / SkillsMiddleware — `docs/LANG_CHAIN_DEEP_AGENTS.md` |
+
+Write isolation: `docs/ISOLATION.md`. Open `/sac-session` before writing a shared second brain.
 
 ## Entry points
 
@@ -29,6 +34,7 @@ OKF Markdown only · no invented edges · scrub secrets · cloud/stack agnostic 
 
 ```bash
 python3 tests/test_sac.py
+python3 tests/test_isolation.py
 bash tools/ci-local.sh
 ```
 

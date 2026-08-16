@@ -1,7 +1,8 @@
 {
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "system-architecture-capture",
   "version": "0.4.0",
-  "description": "System Architecture Capture (SAC) \u2014 second brain for system architecture / reverse-engineer microservices, IaC, CI/CD, IAM, networking, SSO, and runtime topology into a durable OKF knowledge graph on top of PKC. Claude Code, Grok Build, Codex, and OpenCode.",
+  "description": "System Architecture Capture: reverse-engineer services, packages, IaC, CI/CD, IAM, and runtime topology into a durable OKF knowledge graph. Multi-host bindings and write isolation for shared second brains.",
   "author": {
     "name": "Rick Hightower",
     "url": "https://github.com/RichardHightower"
@@ -11,19 +12,16 @@
   "license": "MIT",
   "keywords": [
     "sac",
-    "pkc",
     "okf",
     "architecture",
     "reverse-engineering",
-    "microservices",
-    "iac",
-    "kubernetes",
-    "terraform",
-    "dependency-graph",
-    "blast-radius",
+    "isolation",
+    "agent-plugins",
     "claude-code",
     "grok-build",
     "codex",
+    "deep-agents",
+    "grok-bot",
     "opencode"
   ]
 }
