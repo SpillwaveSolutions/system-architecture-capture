@@ -14,12 +14,12 @@ from sac_capture import capture_scan  # noqa: E402
 from sac_scan import full_scan  # noqa: E402
 
 
-def materialize_repos(bundle: Path, repos: list[Path], system_name: str) -> dict:
+def materialize_repos(bundle: Path, repos: list[Path], system_name: str, *, author: str) -> dict:
     ensure_bundle(bundle, system_name)
     total = {"created": 0, "updated": 0, "skipped": 0, "refused": 0, "repos": []}
     for repo in repos:
         scan = full_scan(repo)
-        stats = capture_scan(bundle, scan, system_name=system_name)
+        stats = capture_scan(bundle, scan, system_name=system_name, author=author)
         total["repos"].append({"root": str(repo), "summary": scan.get("summary"), "stats": stats})
         for k in ("created", "updated", "skipped", "refused"):
             total[k] += stats.get(k, 0)
@@ -33,11 +33,14 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--system", default="System")
     p.add_argument("--scan-root", action="append", default=[], help="Code root(s) to scan (repeatable)")
     p.add_argument("--json", action="store_true")
+    p.add_argument("--author", default="")
     args = p.parse_args(argv)
+    from sac_common import resolve_author
+    author = resolve_author(args.author)
     host = Path(args.repo).resolve()
     bundle = resolve_knowledge_root(host, args.bundle)
     roots = [Path(r).resolve() for r in (args.scan_root or [str(host)])]
-    result = materialize_repos(bundle, roots, args.system)
+    result = materialize_repos(bundle, roots, args.system, author=author)
     if args.json:
         print(json.dumps(result, indent=2, default=str))
     else:

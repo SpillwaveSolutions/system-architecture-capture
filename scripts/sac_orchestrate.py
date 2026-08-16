@@ -44,19 +44,20 @@ def orchestrate(
     bundle_name: str | None,
     wiki: Path | None = None,
     tickets: Path | None = None,
+    author: str,
 ) -> dict:
     bundle = resolve_knowledge_root(host_repo, bundle_name)
     ensure_bundle(bundle, system_name)
     phases_done = ["init-bundle"]
-    mat = materialize_repos(bundle, scan_roots, system_name)
+    mat = materialize_repos(bundle, scan_roots, system_name, author=author)
     phases_done.extend(["scan-*", "capture"])
     if wiki and wiki.exists():
         from sac_ingest_wiki import ingest_dir
-        mat["wiki"] = ingest_dir(bundle, wiki)
+        mat["wiki"] = ingest_dir(bundle, wiki, author=author)
         phases_done.append("ingest-wiki")
     if tickets and tickets.exists():
         from sac_ingest_tickets import ingest_tickets
-        mat["tickets"] = ingest_tickets(bundle, json.loads(tickets.read_text(encoding="utf-8")))
+        mat["tickets"] = ingest_tickets(bundle, json.loads(tickets.read_text(encoding="utf-8")), author=author)
         phases_done.append("ingest-tickets")
     graph = load_graph(bundle)
     phases_done.append("graph")
@@ -86,7 +87,10 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--wiki", default=None, help="Wiki markdown export path")
     p.add_argument("--tickets", default=None, help="Tickets JSON export path")
     p.add_argument("--json", action="store_true")
+    p.add_argument("--author", default="")
     args = p.parse_args(argv)
+    from sac_common import resolve_author
+    author = resolve_author(args.author)
     host = Path(args.repo).resolve()
     roots = [Path(r).resolve() for r in (args.scan_root or [str(host)])]
     result = orchestrate(
@@ -96,6 +100,7 @@ def main(argv: list[str] | None = None) -> int:
         bundle_name=args.bundle,
         wiki=Path(args.wiki) if args.wiki else None,
         tickets=Path(args.tickets) if args.tickets else None,
+        author=author,
     )
     if args.json:
         print(json.dumps(result, indent=2, default=str))

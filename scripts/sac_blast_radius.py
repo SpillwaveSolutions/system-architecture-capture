@@ -10,7 +10,7 @@ from collections import deque
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from sac_common import concept_ref, resolve_knowledge_root, write_concept, path_for_type, slugify, append_log  # noqa: E402
+from sac_common import concept_ref, resolve_knowledge_root, write_knowledge, path_for_type, slugify, append_log  # noqa: E402
 from sac_graph import load_graph, adjacency  # noqa: E402
 
 
@@ -57,19 +57,22 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--hops", type=int, default=3)
     p.add_argument("--json", action="store_true")
     p.add_argument("--write", action="store_true", help="Write BlastRadius concept")
+    p.add_argument("--author", default="")
     args = p.parse_args(argv)
     bundle = resolve_knowledge_root(Path(args.repo).resolve(), args.bundle)
     start = concept_ref(args.concept, "services")
     g = load_graph(bundle)
     result = blast_radius(g, start, hops=args.hops)
     if args.write:
+        from sac_common import resolve_author
+        author = resolve_author(args.author)
         slug = slugify(f"blast-{Path(start).stem}")
         body = f"# Blast radius: {start}\n\nHops: {args.hops}\n\n## Impacted\n\n"
         body += "\n".join(
             f"- hop {i['hop']}: [{i['title']}]({i['path']}) ({i['type']}) via `{i['via']}`"
             for i in result["impacted"]
         ) + "\n"
-        write_concept(
+        write_knowledge(
             bundle,
             path_for_type("BlastRadius", slug),
             {
@@ -83,6 +86,7 @@ def main(argv: list[str] | None = None) -> int:
                 "links": [{"target": start, "rel": "impacts"}],
             },
             body,
+            author=author,
         )
         append_log(bundle, f"Blast radius for {start}: {result['impacted_count']} nodes")
     if args.json:

@@ -44,10 +44,13 @@ The model proposes structure. Scripts scan, capture, and materialize Markdown + 
 
 ```bash
 python3 scripts/sac_scan.py --help
+python3 scripts/sac_capture.py --bundle "${SECOND_BRAIN_ROOT}" --author "${SECOND_BRAIN_IDENTITY}"
 python3 scripts/sac_pack.py services/example.md --bundle "${SECOND_BRAIN_ROOT}" --hops 2
 python3 scripts/sac_validate.py --bundle "${SECOND_BRAIN_ROOT}" --schema
 python3 scripts/sac_blast_radius.py services/example.md --bundle "${SECOND_BRAIN_ROOT}"
 ```
+
+Writes fail closed without `--author` or `SECOND_BRAIN_IDENTITY`. Successful knowledge writes stamp `author` and emit a `WriteEvent`.
 
 **Forbidden:** silent raw dumps into the knowledge tree without type, provenance, or validation.
 

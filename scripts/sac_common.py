@@ -12,7 +12,9 @@ import argparse
 import contextlib
 import hashlib
 import json
+import os
 import re
+import secrets
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -97,6 +99,7 @@ CATALOGS = (
     "diagrams",
     "containers-c4",
     "components",
+    "write-events",
 )
 
 # Back-compat aliases
@@ -271,6 +274,7 @@ TYPE_TO_DIR: dict[str, str] = {
     "Webhook": "apis",
     "Wireframe": "diagrams",
     "Workflow": "pipelines",
+    "WriteEvent": "write-events",
 }
 
 DEFAULT_RELATIONS = (
@@ -795,6 +799,93 @@ def write_concept(
     fm = {k: v for k, v in frontmatter.items() if k not in ("force", "stable_timestamp")}
     path.write_text(dump_frontmatter(fm) + "\n" + body.rstrip() + "\n", encoding="utf-8")
     return path, "created"
+
+
+def resolve_author(explicit: str | None = None) -> str:
+    """Fail-closed identity claim. Prefer --author, else SECOND_BRAIN_IDENTITY."""
+    author = (explicit or os.environ.get("SECOND_BRAIN_IDENTITY") or "").strip()
+    if not author:
+        print(
+            json.dumps(
+                {
+                    "error": "claim an identity first",
+                    "hint": "pass --author or set SECOND_BRAIN_IDENTITY",
+                }
+            )
+        )
+        raise SystemExit(1)
+    return author
+
+
+def emit_write_event(
+    bundle: Path,
+    *,
+    author: str,
+    typ: str,
+    dest: Path,
+    host: str = "",
+) -> Path | None:
+    """Record a WriteEvent node for a successful knowledge write. Skip self."""
+    if typ == "WriteEvent":
+        return None
+    try:
+        rel = "/" + str(dest.relative_to(bundle)).replace("\\", "/")
+    except ValueError:
+        rel = "/" + dest.name
+    event_id = f"{int(datetime.now(timezone.utc).timestamp())}-{secrets.token_hex(3)}"
+    ev_rel = f"write-events/{event_id}.md"
+    fm = {
+        "type": "WriteEvent",
+        "title": f"write {typ} {dest.name}",
+        "status": "recorded",
+        "timestamp": utc_now(),
+        "author": author,
+        "tags": ["write-event", typ.lower()],
+        "links": [{"target": rel, "rel": "documents"}],
+    }
+    body = (
+        f"# Write {typ}\n\n"
+        f"- actor: `{author}`\n"
+        f"- host: `{host or 'unknown'}`\n"
+        f"- path: `{rel}`\n"
+        f"- type: `{typ}`\n"
+    )
+    write_concept(bundle, ev_rel, fm, body, merge=False)
+    ensure_catalog_index(bundle, "write-events", "Write Events")
+    return bundle / ev_rel
+
+
+def write_knowledge(
+    bundle: Path,
+    rel_path: str,
+    frontmatter: dict[str, Any],
+    body: str,
+    *,
+    author: str,
+    host: str | None = None,
+    merge: bool = True,
+    create_only: bool = False,
+    emit_event: bool = True,
+) -> tuple[Path, str]:
+    """Stamp author, write via write_concept, emit WriteEvent on created/updated.
+
+    write_concept stays pure. Callers that own a knowledge write go through here.
+    """
+    if not (author or "").strip():
+        resolve_author(author)
+    fm = {**frontmatter, "author": author}
+    path, action = write_concept(
+        bundle, rel_path, fm, body, merge=merge, create_only=create_only
+    )
+    if emit_event and action in ("created", "updated"):
+        emit_write_event(
+            bundle,
+            author=author,
+            typ=str(fm.get("type") or "Concept"),
+            dest=path,
+            host=host if host is not None else os.environ.get("SECOND_BRAIN_HOST", ""),
+        )
+    return path, action
 
 
 def ensure_catalog_index(bundle: Path, catalog: str, title: str | None = None) -> Path:

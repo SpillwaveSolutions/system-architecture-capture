@@ -2,6 +2,15 @@
 
 Notable changes to **system-architecture-capture**. Newest first.
 
+## 0.4.1 — 2026-08-16
+
+### Added
+
+- Required identity on every knowledge write: `--author` or `SECOND_BRAIN_IDENTITY`.
+- `write_knowledge()` stamps `author` and emits a `WriteEvent`. `write_concept` stays pure.
+- Wired through capture, materialize, orchestrate, wiki/ticket ingest, C4 `--generate`, blast-radius `--write`, and link.
+- Fail-closed tests. Print-only / scan paths do not require identity.
+
 ## 0.4.0 — 2026-08-15
 
 ### Added

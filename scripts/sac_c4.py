@@ -29,7 +29,7 @@ from sac_common import (  # noqa: E402
     refresh_catalog_index,
     resolve_knowledge_root,
     slugify,
-    write_concept,
+    write_knowledge,
 )
 from sac_graph import load_graph  # noqa: E402
 
@@ -269,6 +269,7 @@ def generate_views(
     *,
     system: str | None = None,
     write: bool = True,
+    author: str | None = None,
 ) -> dict:
     inv = inventory(bundle)
     sys_title = system
@@ -299,6 +300,9 @@ def generate_views(
         "inventory_counts": {k: len(v) for k, v in inv.items()},
     }
     if write:
+        if not author:
+            from sac_common import resolve_author
+            author = resolve_author(None)
         ensure_bundle(bundle)
         base = slugify(sys_title or "system")
         for key, meta in (
@@ -325,7 +329,7 @@ def generate_views(
             links = []
             if inv["SoftwareSystem"]:
                 links.append({"target": inv["SoftwareSystem"][0]["path"], "rel": "c4_view_of"})
-            write_concept(
+            write_knowledge(
                 bundle,
                 rel,
                 {
@@ -345,6 +349,7 @@ def generate_views(
                     "stable_timestamp": True,
                 },
                 body,
+                author=author,
             )
         # export DSL alongside diagrams catalog
         dsl_path = bundle / "diagrams" / f"{base}-structurizr.dsl"
@@ -365,6 +370,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--generate", action="store_true", help="Write C4 diagram concepts")
     p.add_argument("--dsl", action="store_true", help="Print Structurizr DSL")
     p.add_argument("--json", action="store_true")
+    p.add_argument("--author", default="")
     args = p.parse_args(argv)
     bundle = resolve_knowledge_root(Path(args.repo).resolve(), args.bundle)
     # allow sample-knowledge path directly
@@ -389,7 +395,9 @@ def main(argv: list[str] | None = None) -> int:
         print(structurizr_dsl(inv, args.system or "SAC"))
         return 0
     if args.generate:
-        views = generate_views(bundle, system=args.system, write=True)
+        from sac_common import resolve_author
+        author = resolve_author(args.author)
+        views = generate_views(bundle, system=args.system, write=True, author=author)
         if args.json:
             out = {k: v for k, v in views.items() if k != "structurizr_dsl"}
             out["structurizr_dsl_bytes"] = len(views["structurizr_dsl"])
