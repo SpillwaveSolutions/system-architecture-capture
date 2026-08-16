@@ -9,8 +9,8 @@
     {
       "name": "system-architecture-capture",
       "source": "./",
-      "description": "System Architecture Capture — build a second brain / reverse-engineer modern systems into OKF/PKC knowledge graphs",
-      "version": "0.3.0"
+      "description": "System Architecture Capture \u2014 build a second brain / reverse-engineer modern systems into OKF/PKC knowledge graphs",
+      "version": "0.4.0"
     }
   ]
 }

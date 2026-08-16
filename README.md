@@ -6,14 +6,29 @@ SAC is the **specialized second brain** for this class of knowledge: reverse-eng
 
 It materializes that information as a durable [OKF](https://github.com/SpillwaveSolutions/okf-plugin) graph using a **standard OKF schema pack** (plus [PKC](https://github.com/SpillwaveSolutions/project-knowledge-capture)) so agents and humans can query topology, ownership, and blast radius with precision.
 
-Works as a **Claude Code**, **Grok Build**, **Codex**, and **OpenCode** plugin.
+Works on **Claude Code**, **Grok Build**, **Codex**, **OpenCode**, **Agent Plugins 1.0**, **Grok Bot**, and **LangChain Deep Agents**.
 
 | | |
 |---|---|
 | **Plugin name** | `system-architecture-capture` |
-| **Version** | 0.3.0 |
+| **Version** | 0.4.0 |
 | **License** | MIT |
 | **Depends on** | [PKC](https://github.com/SpillwaveSolutions/project-knowledge-capture) · [OKF](https://github.com/SpillwaveSolutions/okf-plugin) |
+
+## Multi-host
+
+| Host | How it loads |
+|------|----------------|
+| Claude Code | Marketplace / local plugin (`.claude-plugin`) |
+| Grok Build | Claude-compatible, zero-config (`.grok-plugin` pins identity) |
+| Codex | `.codex-plugin` + existing `hooks/hooks.json` |
+| OpenCode | `.opencode-plugin` |
+| Agent Plugins 1.0 | Root `plugin.json` |
+| Grok Bot | Skills + [docs/GROK_BOT.md](docs/GROK_BOT.md) (not a Claude-style install) |
+| LangChain Deep Agents | `skills=` / SkillsMiddleware — [docs/LANG_CHAIN_DEEP_AGENTS.md](docs/LANG_CHAIN_DEEP_AGENTS.md) |
+
+Write isolation (worktree + PR) is in [docs/ISOLATION.md](docs/ISOLATION.md). Public examples use fictional **lumenfield-detector** and **northstar-console** only. Point `SECOND_BRAIN_ROOT` at a path the human already has. Never hard-code a private remote.
+
 
 ## What this second brain is for
 
@@ -134,6 +149,15 @@ Grok discovers Claude-compatible plugins automatically (`.claude-plugin/`). Nati
 # Same shared skills/ and agents/
 ```
 
+### Grok Bot / Deep Agents
+
+Do not run `/plugin marketplace add`. Enable the skills in `skills/` and follow:
+
+- [docs/ONBOARDING.md](docs/ONBOARDING.md)
+- [docs/GROK_BOT.md](docs/GROK_BOT.md)
+- [docs/LANG_CHAIN_DEEP_AGENTS.md](docs/LANG_CHAIN_DEEP_AGENTS.md)
+- `/sac-session` before writing a shared second brain
+
 ## Quick start
 
 Point the orchestrator at one or more repo roots:
@@ -182,6 +206,7 @@ python3 tests/test_sac.py
 | `sac-graph` | Dependency graph / Mermaid |
 | `sac-blast-radius` | Impact analysis |
 | `sac-pack` | Progressive disclosure packs |
+| `sac-session` | Open / close isolated write session (worktree + PR) |
 | `sac-search` | Full-text search |
 | `sac-doctor` | Bundle health |
 | `sac-link` | Typed edges |
@@ -202,8 +227,10 @@ SAC  ← reverse-engineered runtime & infrastructure topology  (this repo)
 
 ## Docs
 
+- [Onboarding](./docs/ONBOARDING.md) · [Grok Bot](./docs/GROK_BOT.md) · [Deep Agents](./docs/LANG_CHAIN_DEEP_AGENTS.md) · [Isolation](./docs/ISOLATION.md)
 - [PRD](./docs/prd.md) · [Design](./docs/design.md) · [OKF schemas](./docs/okf-schemas.md) · [Concept types](./docs/concept-types.md) · [Gaps](./docs/concept-gaps.md) · [Typed edges](./docs/typed-edges.md)
 - Machine registry: [`schemas/types.json`](./schemas/types.json)
+- Skill: `sac-session` · Script: `scripts/brain_session.py`
 
 ## License
 

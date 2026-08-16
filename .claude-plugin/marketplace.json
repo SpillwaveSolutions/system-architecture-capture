@@ -11,12 +11,21 @@
       "name": "system-architecture-capture",
       "source": "./",
       "description": "Reverse-engineer application systems (code, IaC, CI/CD, IAM, networking, SSO) into an OKF/PKC architecture knowledge graph.",
-      "version": "0.3.0",
-      "author": { "name": "Rick Hightower" },
+      "version": "0.4.0",
+      "author": {
+        "name": "Rick Hightower"
+      },
       "homepage": "https://github.com/SpillwaveSolutions/system-architecture-capture",
       "repository": "https://github.com/SpillwaveSolutions/system-architecture-capture",
       "license": "MIT",
-      "keywords": ["sac", "architecture", "okf", "pkc", "build a second brain / reverse-engineering", "claude-code"],
+      "keywords": [
+        "sac",
+        "architecture",
+        "okf",
+        "pkc",
+        "build a second brain / reverse-engineering",
+        "claude-code"
+      ],
       "category": "productivity"
     }
   ]

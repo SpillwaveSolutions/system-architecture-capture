@@ -1,7 +1,7 @@
 {
   "name": "system-architecture-capture",
-  "version": "0.3.0",
-  "description": "System Architecture Capture (SAC) — second brain for system architecture / reverse-engineer microservices, IaC, CI/CD, IAM, networking, SSO, and runtime topology into a durable OKF knowledge graph on top of PKC. Claude Code, Grok Build, Codex, and OpenCode.",
+  "version": "0.4.0",
+  "description": "System Architecture Capture (SAC) \u2014 second brain for system architecture / reverse-engineer microservices, IaC, CI/CD, IAM, networking, SSO, and runtime topology into a durable OKF knowledge graph on top of PKC. Claude Code, Grok Build, Codex, and OpenCode.",
   "author": {
     "name": "Rick Hightower",
     "url": "https://github.com/RichardHightower"

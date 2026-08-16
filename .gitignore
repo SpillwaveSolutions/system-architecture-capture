@@ -19,3 +19,7 @@ package-lock.json
 artifacts/
 screenshots/*.png
 !screenshots/.gitkeep
+
+# Isolation session bookkeeping
+.brain-sessions/
+.brain-worktrees/
