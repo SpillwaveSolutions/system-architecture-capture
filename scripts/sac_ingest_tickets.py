@@ -18,7 +18,7 @@ from sac_common import (  # noqa: E402
     resolve_knowledge_root,
     scrub_text,
     slugify,
-    write_concept,
+    write_knowledge,
 )
 
 
@@ -98,7 +98,7 @@ def normalize_ticket(item: dict) -> dict:
     }
 
 
-def ingest_tickets(bundle: Path, data: list | dict) -> dict:
+def ingest_tickets(bundle: Path, data: list | dict, *, author: str) -> dict:
     items = data if isinstance(data, list) else data.get("issues") or data.get("tickets") or data.get("items") or []
     stats = {"created": 0, "updated": 0, "skipped": 0}
     for raw in items:
@@ -122,7 +122,7 @@ def ingest_tickets(bundle: Path, data: list | dict) -> dict:
         else:
             fm_type = "TicketLink"
             rel = path_for_type("TicketLink", slug)
-        _, st = write_concept(
+        _, st = write_knowledge(
             bundle,
             rel,
             {
@@ -138,6 +138,7 @@ def ingest_tickets(bundle: Path, data: list | dict) -> dict:
                 "stable_timestamp": True,
             },
             body,
+            author=author,
         )
         stats[st] = stats.get(st, 0) + 1
     refresh_catalog_index(bundle, "tickets")
@@ -151,11 +152,14 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("source", help="JSON file of tickets/issues")
     p.add_argument("--repo", default=".")
     p.add_argument("--bundle", default=None)
+    p.add_argument("--author", default="")
     args = p.parse_args(argv)
+    from sac_common import resolve_author
+    author = resolve_author(args.author)
     bundle = resolve_knowledge_root(Path(args.repo).resolve(), args.bundle)
     ensure_bundle(bundle)
     data = json.loads(Path(args.source).read_text(encoding="utf-8"))
-    print(ingest_tickets(bundle, data))
+    print(ingest_tickets(bundle, data, author=author))
     return 0
 
 

@@ -45,6 +45,7 @@ from sac_ingest_tickets import ingest_tickets  # noqa: E402
 
 FIXTURE = ROOT / "tests" / "fixtures" / "demo-repo"
 SAMPLE = ROOT / "sample-knowledge"
+AUTHOR = "claude-code/lumenfield-detector"
 
 
 class TestSlugify(unittest.TestCase):
@@ -100,7 +101,7 @@ class TestCaptureAndGraph(unittest.TestCase):
             bundle = Path(td) / "knowledge"
             ensure_bundle(bundle, "Test System")
             scan = full_scan(FIXTURE)
-            stats = capture_scan(bundle, scan, system_name="Test System")
+            stats = capture_scan(bundle, scan, system_name="Test System", author=AUTHOR)
             self.assertGreater(stats["created"] + stats["updated"], 0)
             g = load_graph(bundle)
             self.assertGreater(g["node_count"], 3)
@@ -143,6 +144,7 @@ class TestOrchestrate(unittest.TestCase):
                 bundle_name="knowledge",
                 wiki=ROOT / "tests" / "fixtures" / "wiki",
                 tickets=ROOT / "tests" / "fixtures" / "tickets.json",
+                author=AUTHOR,
             )
             self.assertTrue(result["validation"]["ok"] or result["graph"]["node_count"] > 0)
             self.assertGreater(result["graph"]["node_count"], 5)
@@ -153,11 +155,12 @@ class TestIngest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as td:
             bundle = Path(td) / "k"
             ensure_bundle(bundle)
-            w = ingest_dir(bundle, ROOT / "tests" / "fixtures" / "wiki")
+            w = ingest_dir(bundle, ROOT / "tests" / "fixtures" / "wiki", author=AUTHOR)
             self.assertGreater(w["created"] + w["updated"], 0)
             t = ingest_tickets(
                 bundle,
                 json.loads((ROOT / "tests" / "fixtures" / "tickets.json").read_text()),
+                author=AUTHOR,
             )
             self.assertGreater(t["created"] + t["updated"], 0)
 
@@ -503,5 +506,87 @@ class TestWriteConcept(unittest.TestCase):
             self.assertEqual(b, "skipped")
 
 
+class TestRequiredIdentity(unittest.TestCase):
+    def test_resolve_author_fail_closed(self):
+        import os
+        from sac_common import resolve_author
+
+        prev = os.environ.pop("SECOND_BRAIN_IDENTITY", None)
+        try:
+            with self.assertRaises(SystemExit):
+                resolve_author(None)
+            with self.assertRaises(SystemExit):
+                resolve_author("")
+            self.assertEqual(
+                resolve_author("grok-bot/northstar-console"),
+                "grok-bot/northstar-console",
+            )
+        finally:
+            if prev is not None:
+                os.environ["SECOND_BRAIN_IDENTITY"] = prev
+
+    def test_flag_beats_env(self):
+        import os
+        from sac_common import resolve_author
+
+        prev = os.environ.get("SECOND_BRAIN_IDENTITY")
+        os.environ["SECOND_BRAIN_IDENTITY"] = "grok-bot/northstar-console"
+        try:
+            self.assertEqual(resolve_author(None), "grok-bot/northstar-console")
+            self.assertEqual(resolve_author(AUTHOR), AUTHOR)
+        finally:
+            if prev is None:
+                os.environ.pop("SECOND_BRAIN_IDENTITY", None)
+            else:
+                os.environ["SECOND_BRAIN_IDENTITY"] = prev
+
+    def test_capture_stamps_author_and_emits_event(self):
+        from sac_common import parse_frontmatter, path_for_type
+
+        with tempfile.TemporaryDirectory() as td:
+            bundle = Path(td) / "knowledge"
+            ensure_bundle(bundle, "Test System")
+            scan = full_scan(FIXTURE)
+            capture_scan(bundle, scan, system_name="Test System", author=AUTHOR)
+            rel = path_for_type("System", "test-system")
+            fm, _ = parse_frontmatter((bundle / rel.lstrip("/")).read_text(encoding="utf-8"))
+            self.assertEqual(fm.get("author"), AUTHOR)
+            events = [
+                p
+                for p in (bundle / "write-events").glob("*.md")
+                if p.name != "index.md"
+            ]
+            self.assertGreater(len(events), 0, "expected WriteEvent nodes")
+            ev_fm, _ = parse_frontmatter(events[0].read_text(encoding="utf-8"))
+            self.assertEqual(ev_fm.get("type"), "WriteEvent")
+            self.assertEqual(ev_fm.get("author"), AUTHOR)
+
+    def test_cli_capture_without_identity_fails(self):
+        import os
+        import subprocess
+
+        env = os.environ.copy()
+        env.pop("SECOND_BRAIN_IDENTITY", None)
+        with tempfile.TemporaryDirectory() as td:
+            r = subprocess.run(
+                [
+                    sys.executable,
+                    str(ROOT / "scripts" / "sac_capture.py"),
+                    "--repo",
+                    td,
+                    "--root",
+                    str(FIXTURE),
+                    "--system",
+                    "X",
+                ],
+                capture_output=True,
+                text=True,
+                env=env,
+            )
+            self.assertNotEqual(r.returncode, 0)
+            self.assertIn("identity", (r.stdout + r.stderr).lower())
+
+
 if __name__ == "__main__":
     unittest.main()
+

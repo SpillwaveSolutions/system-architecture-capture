@@ -16,12 +16,15 @@ from sac_common import (  # noqa: E402
     refresh_catalog_index,
     resolve_knowledge_root,
     slugify,
-    write_concept,
+    write_knowledge,
 )
 from sac_scan import full_scan  # noqa: E402
 
 
-def capture_scan(bundle: Path, scan: dict, *, system_name: str = "System") -> dict:
+def capture_scan(bundle: Path, scan: dict, *, system_name: str = "System", author: str) -> dict:
+    def write_concept(b, rel, fm, body, **kw):
+        return write_knowledge(b, rel, fm, body, author=author, **kw)
+
     stats = {"created": 0, "updated": 0, "skipped": 0}
     sys_slug = slugify(system_name)
     sys_path = path_for_type("System", sys_slug)
@@ -578,7 +581,10 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--system", default="System")
     p.add_argument("--json", action="store_true")
     p.add_argument("--scan-json", default=None, help="Use precomputed scan JSON file")
+    p.add_argument("--author", default="")
     args = p.parse_args(argv)
+    from sac_common import resolve_author
+    author = resolve_author(args.author)
     repo = Path(args.repo).resolve()
     code_root = Path(args.root).resolve() if args.root else repo
     bundle = resolve_knowledge_root(repo, args.bundle)
@@ -587,7 +593,7 @@ def main(argv: list[str] | None = None) -> int:
         scan = json.loads(Path(args.scan_json).read_text(encoding="utf-8"))
     else:
         scan = full_scan(code_root)
-    stats = capture_scan(bundle, scan, system_name=args.system)
+    stats = capture_scan(bundle, scan, system_name=args.system, author=author)
     if args.json:
         print(json.dumps({"bundle": str(bundle), "stats": stats, "summary": scan.get("summary")}, indent=2))
     else:

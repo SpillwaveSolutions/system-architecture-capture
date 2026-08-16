@@ -17,7 +17,7 @@ from sac_common import (  # noqa: E402
     resolve_knowledge_root,
     scrub_text,
     slugify,
-    write_concept,
+    write_knowledge,
 )
 
 
@@ -45,7 +45,7 @@ def classify(name: str, text: str, default: str = "Discovery") -> str:
     return default
 
 
-def ingest_dir(bundle: Path, source: Path, default_type: str = "Discovery") -> dict:
+def ingest_dir(bundle: Path, source: Path, default_type: str = "Discovery", *, author: str) -> dict:
     stats = {"created": 0, "updated": 0, "skipped": 0, "unclassified": 0}
     files = list(source.rglob("*.md")) if source.is_dir() else [source]
     for f in files:
@@ -66,7 +66,7 @@ def ingest_dir(bundle: Path, source: Path, default_type: str = "Discovery") -> d
         slug = slugify(f"wiki-{f.stem}")
         rel = path_for_type(ctype, slug)
         body = f"# {title}\n\n_Ingested from wiki: `{f.name}`_\n\n{clean.strip()}\n"
-        _, st = write_concept(
+        _, st = write_knowledge(
             bundle,
             rel,
             {
@@ -82,6 +82,7 @@ def ingest_dir(bundle: Path, source: Path, default_type: str = "Discovery") -> d
                 "stable_timestamp": True,
             },
             body,
+            author=author,
         )
         stats[st] = stats.get(st, 0) + 1
     for cat in ("decisions", "glossary", "designs", "discoveries"):
@@ -101,10 +102,13 @@ def main(argv: list[str] | None = None) -> int:
         help="Type for pages no hint matches. The fallback is a guess; the "
              "reported 'unclassified' count says how often it fired.",
     )
+    p.add_argument("--author", default="")
     args = p.parse_args(argv)
+    from sac_common import resolve_author
+    author = resolve_author(args.author)
     bundle = resolve_knowledge_root(Path(args.repo).resolve(), args.bundle)
     ensure_bundle(bundle)
-    stats = ingest_dir(bundle, Path(args.source).resolve(), default_type=args.default_type)
+    stats = ingest_dir(bundle, Path(args.source).resolve(), default_type=args.default_type, author=author)
     print(stats)
     return 0
 
