@@ -1,0 +1,27 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "system-architecture-capture",
+  "version": "0.4.0",
+  "description": "System Architecture Capture: reverse-engineer services, packages, IaC, CI/CD, IAM, and runtime topology into a durable OKF knowledge graph. Multi-host bindings and write isolation for shared second brains.",
+  "author": {
+    "name": "Rick Hightower",
+    "url": "https://github.com/RichardHightower"
+  },
+  "homepage": "https://github.com/SpillwaveSolutions/system-architecture-capture",
+  "repository": "https://github.com/SpillwaveSolutions/system-architecture-capture",
+  "license": "MIT",
+  "keywords": [
+    "sac",
+    "okf",
+    "architecture",
+    "reverse-engineering",
+    "isolation",
+    "agent-plugins",
+    "claude-code",
+    "grok-build",
+    "codex",
+    "deep-agents",
+    "grok-bot",
+    "opencode"
+  ]
+}
