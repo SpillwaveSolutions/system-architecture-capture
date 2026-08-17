@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd "$(dirname "$0")/.."
-python3 -m py_compile scripts/sac_*.py
+python3 -m py_compile scripts/*.py
 python3 tests/test_sac.py -v
 python3 tests/test_isolation.py
 python3 scripts/sac_validate.py --bundle sample-knowledge --schema --json | python3 -c "import sys,json; d=json.load(sys.stdin); assert d['errors']==0 and d['node_count']>=20, d"
