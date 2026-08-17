@@ -1,6 +1,6 @@
 {
   "name": "system-architecture-capture",
-  "version": "0.4.0",
+  "version": "0.4.2",
   "description": "System Architecture Capture (SAC) for OpenCode \u2014 reverse-engineer repos into OKF/PKC architecture knowledge graphs.",
   "skills": "skills/",
   "agents": "agents/",
@@ -13,5 +13,6 @@
     "skills_md": true
   },
   "repository": "https://github.com/SpillwaveSolutions/system-architecture-capture",
-  "license": "MIT"
+  "license": "MIT",
+  "hooks": "hooks/hooks.json"
 }
