@@ -1,6 +1,6 @@
 {
   "name": "system-architecture-capture",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "System Architecture Capture for Codex. Same skills and hooks as Claude Code / Grok Build, plus isolation session helpers.",
   "skills": "skills/",
   "agents": "agents/",

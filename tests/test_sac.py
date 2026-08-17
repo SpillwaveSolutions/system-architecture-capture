@@ -37,7 +37,7 @@ from sac_graph import load_graph, mermaid  # noqa: E402
 from sac_blast_radius import blast_radius  # noqa: E402
 from sac_validate import validate_bundle  # noqa: E402
 from sac_search import search  # noqa: E402
-from sac_pack import pack  # noqa: E402
+from sac_pack import PackBudgetError, finalize_markdown, main as pack_main, pack  # noqa: E402
 from sac_orchestrate import orchestrate  # noqa: E402
 from sac_ingest_wiki import ingest_dir  # noqa: E402
 from sac_ingest_tickets import ingest_tickets  # noqa: E402
@@ -126,11 +126,92 @@ class TestSampleKnowledge(unittest.TestCase):
         p = pack(SAMPLE, "services/order-service.md", hops=2)
         self.assertGreaterEqual(p["node_count"], 3)
         self.assertIn("flowchart", p["mermaid"])
+        md, meta = finalize_markdown(p)
+        self.assertEqual(meta["window"], 128000)
+        self.assertEqual(meta["budget"], 32000)
+        self.assertLessEqual(meta["tokens"], meta["budget"])
+        self.assertIn("Coordinates checkout", md)
+        for c in p["concepts"]:
+            if c.get("path") != p["start"]:
+                self.assertFalse((c.get("body") or "").strip())
 
     def test_blast_radius(self):
         g = load_graph(SAMPLE)
         br = blast_radius(g, "/services/order-service.md", hops=2)
         self.assertGreater(br["impacted_count"], 0)
+
+
+
+class TestPackTokenBudget(unittest.TestCase):
+    def test_bodies_off_unless_root(self):
+        tmp = Path(tempfile.mkdtemp())
+        try:
+            services = tmp / "services"
+            services.mkdir()
+            (tmp / "index.md").write_text(
+                '---\nokf_version: "0.2"\ntitle: t\n---\n', encoding="utf-8"
+            )
+            (services / "root.md").write_text(
+                "---\ntype: Service\ntitle: Lumenfield Root\n"
+                "links:\n  - target: /services/neighbor.md\n    rel: calls\n"
+                "---\n# Lumenfield Root\n\nROOT_BODY_MARKER secret-of-root\n",
+                encoding="utf-8",
+            )
+            (services / "neighbor.md").write_text(
+                "---\ntype: Service\ntitle: Neighbor\n"
+                "description: neighbor-frontmatter-only\n---\n"
+                "# Neighbor\n\nNEIGHBOR_BODY_MARKER must-not-pack\n",
+                encoding="utf-8",
+            )
+            result = pack(tmp, "services/root.md", hops=1, max_nodes=8)
+            md, _meta = finalize_markdown(result)
+            self.assertIn("ROOT_BODY_MARKER", md)
+            self.assertNotIn("NEIGHBOR_BODY_MARKER", md)
+            self.assertIn("neighbor-frontmatter-only", md)
+        finally:
+            shutil.rmtree(tmp)
+
+    def test_over_budget_fails_closed(self):
+        tmp = Path(tempfile.mkdtemp())
+        try:
+            services = tmp / "services"
+            services.mkdir()
+            (tmp / "index.md").write_text(
+                '---\nokf_version: "0.2"\ntitle: t\n---\n', encoding="utf-8"
+            )
+            fat = "# Fat Root\n\n" + ("word " * 400)
+            (services / "fat.md").write_text(
+                "---\ntype: Service\ntitle: Fat Root\n---\n" + fat,
+                encoding="utf-8",
+            )
+            result = pack(tmp, "services/fat.md", hops=0, max_nodes=1)
+            with self.assertRaises(PackBudgetError) as ctx:
+                finalize_markdown(result, max_tokens=20)
+            self.assertGreater(ctx.exception.tokens, ctx.exception.budget)
+            self.assertEqual(ctx.exception.budget, 20)
+            out = tmp / "should-not-exist.md"
+            rc = pack_main(
+                [
+                    "services/fat.md",
+                    "--repo",
+                    str(tmp),
+                    "--bundle",
+                    str(tmp),
+                    "--max-nodes",
+                    "1",
+                    "--hops",
+                    "0",
+                    "--max-tokens",
+                    "20",
+                    "--write",
+                    str(out),
+                    "--json",
+                ]
+            )
+            self.assertNotEqual(rc, 0)
+            self.assertFalse(out.exists())
+        finally:
+            shutil.rmtree(tmp)
 
 
 class TestOrchestrate(unittest.TestCase):

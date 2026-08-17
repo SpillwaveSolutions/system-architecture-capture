@@ -11,7 +11,7 @@ Works on **Claude Code**, **Grok Build**, **Codex**, **OpenCode**, **Agent Plugi
 | | |
 |---|---|
 | **Plugin name** | `system-architecture-capture` |
-| **Version** | 0.4.1 |
+| **Version** | 0.4.2 |
 | **License** | MIT |
 | **Depends on** | [PKC](https://github.com/SpillwaveSolutions/project-knowledge-capture) · [OKF](https://github.com/SpillwaveSolutions/okf-plugin) |
 
