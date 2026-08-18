@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd "$(dirname "$0")/.."
+python3 tools/check_consistency.py
 python3 -m py_compile scripts/*.py
 python3 tests/test_sac.py -v
 python3 tests/test_isolation.py
