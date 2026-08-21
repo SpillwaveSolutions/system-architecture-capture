@@ -1,6 +1,6 @@
 {
   "name": "system-architecture-capture",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "description": "System Architecture Capture (SAC) for OpenCode \u2014 reverse-engineer repos into OKF/PKC architecture knowledge graphs.",
   "skills": "skills/",
   "agents": "agents/",

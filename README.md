@@ -6,12 +6,12 @@ SAC is the **specialized second brain** for this class of knowledge: reverse-eng
 
 It materializes that information as a durable [OKF](https://github.com/SpillwaveSolutions/okf-plugin) graph using a **standard OKF schema pack** (plus [PKC](https://github.com/SpillwaveSolutions/project-knowledge-capture)) so agents and humans can query topology, ownership, and blast radius with precision.
 
-Works on **Claude Code**, **Grok Build**, **Codex**, **OpenCode**, **Agent Plugins 1.0**, **Grok Bot**, and **LangChain Deep Agents**.
+Works on **Claude Code**, **Grok Build**, **Codex**, **Cursor**, **OpenCode**, **Agent Plugins 1.0**, **Grok Bot**, and **LangChain Deep Agents**.
 
 | | |
 |---|---|
 | **Plugin name** | `system-architecture-capture` |
-| **Version** | 0.4.2 |
+| **Version** | 0.4.3 |
 | **License** | MIT |
 | **Depends on** | [PKC](https://github.com/SpillwaveSolutions/project-knowledge-capture) · [OKF](https://github.com/SpillwaveSolutions/okf-plugin) |
 
@@ -22,6 +22,7 @@ Works on **Claude Code**, **Grok Build**, **Codex**, **OpenCode**, **Agent Plugi
 | Claude Code | Marketplace / local plugin (`.claude-plugin`) |
 | Grok Build | Claude-compatible, zero-config (`.grok-plugin` pins identity) |
 | Codex | `.codex-plugin` + existing `hooks/hooks.json` |
+| Cursor | `.cursor-plugin` + `.cursor/rules/second-brain.mdc` — [docs/CURSOR.md](docs/CURSOR.md) |
 | OpenCode | `.opencode-plugin` |
 | Agent Plugins 1.0 | Root `plugin.json` |
 | Grok Bot | Skills + [docs/GROK_BOT.md](docs/GROK_BOT.md) (not a Claude-style install) |

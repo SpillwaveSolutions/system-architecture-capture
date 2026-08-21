@@ -1,10 +1,24 @@
 # Changelog
 
+Notable changes to **system-architecture-capture**. Newest first.
+
+## Unreleased
+
+### Fixed
+
+- Re-synced `.opencode-plugin/plugin.json` (0.4.2 → 0.4.3) and the README version table, both missed by the 0.4.3 bump. The OpenCode manifest had been skipped by three consecutive releases.
+- Restored the CHANGELOG intro line to directly under the title; the 0.4.3 entry had been inserted above it.
+- `.claude-plugin/plugin.json` and `package.json` descriptions now list Cursor alongside the other hosts.
+- README now documents the Cursor host (intro list + Multi-host table); 0.4.3 shipped `.cursor-plugin`, `docs/CURSOR.md` and `hosts/cursor/` without any README mention.
+
+### Added
+
+- `tools/check_consistency.py` (`npm run consistency`, wired into CI): asserts every published version site matches `package.json` and that the Rule 4 typecheck list covers `scripts/*.py`. Version sites are discovered by glob, so a new host manifest is covered the day it lands.
+
 ## 0.4.3 — 2026-08-17
 
 - **Cursor host.** `.cursor-plugin/plugin.json` (Cursor Plugins) plus `.cursor/rules/second-brain.mdc`. Docs: `docs/CURSOR.md`. `docs/GROK_BOT.md` now covers Grok Bot spawning Cursor cloud agents.
 
-Notable changes to **system-architecture-capture**. Newest first.
 
 ## 0.4.2 — 2026-08-16
 
