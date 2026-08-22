@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.4
+
+- Three-host hooks: Codex + Cursor-native when Claude hooks exist.
+
+
 Notable changes to **system-architecture-capture**. Newest first.
 
 ## Unreleased
