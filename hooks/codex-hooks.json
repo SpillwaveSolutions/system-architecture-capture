@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/scripts/sac-curate.sh\"",
+            "timeout": 45
+          }
+        ]
+      }
+    ]
+  },
+  "description": "Codex port of Claude Code hooks. Same scripts; ExitPlanMode omitted (no such tool)."
+}

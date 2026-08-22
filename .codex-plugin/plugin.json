@@ -13,5 +13,5 @@
   },
   "repository": "https://github.com/SpillwaveSolutions/system-architecture-capture",
   "license": "MIT",
-  "hooks": "hooks/hooks.json"
+  "hooks": "./hooks/codex-hooks.json"
 }
