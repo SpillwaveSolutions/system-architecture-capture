@@ -285,11 +285,9 @@ class TestTicketNormalization(unittest.TestCase):
 
 class TestWikiClassify(unittest.TestCase):
     def test_runbook_gets_the_runbook_type(self):
-        """`Runbook` is a registered type; returning `Design` looked like a
-        leftover, and the skill advertises runbook handling."""
+        """Wiki runbooks still classify as `Runbook` (a PKC noun). SAC does not
+        register Runbook; mixed bundles merge PKC schemas at validate time."""
         from sac_ingest_wiki import classify
-        from sac_validate import load_schema_registry
-        self.assertIn("Runbook", {t["type"] for t in load_schema_registry()["types"]})
         self.assertEqual(classify("oncall-runbook.md", ""), "Runbook")
 
     def test_default_type_is_caller_controlled(self):
@@ -454,8 +452,10 @@ class TestSchemaPack(unittest.TestCase):
         self.assertIn("Cache", types)
         self.assertIn("Event", types)
         self.assertIn("WebApp", types)
-        self.assertIn("DecisionRecord", types)
-        self.assertIn("TicketLink", types)
+        self.assertIn("ApiContract", types)
+        self.assertNotIn("DecisionRecord", types)
+        self.assertNotIn("TicketLink", types)
+        self.assertNotIn("AgentNode", types)
         self.assertIn("calls", reg["relations"]["all"])
 
     def test_sample_schema_validate(self):

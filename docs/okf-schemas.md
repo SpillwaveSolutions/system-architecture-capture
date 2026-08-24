@@ -25,19 +25,25 @@ Body must include absolute Markdown links for humans; `links[].rel` enriches the
 
 ## Schema layers
 
-### OKF core knowledge & harness
+### OKF core (okf-plugin)
 
-`Dataset` · `Table` · `Metric` · `Playbook` · `Runbook` · `API` · `Reference`  
-`AgentNode` · `Workflow` · `Harness` · `DecisionRecord` · `SharedState` · `ToolCapability` · `TicketLink`
+`Catalog` · `ContextPack` · envelope `BaseConcept`
 
 ### PKC project memory
 
-`Meeting` · `Experiment` · `Discovery` · `Assumption` · `Question` · `Feature` · `Requirement` · `Specification` · `Design` · `Release` · `CodeChange` · `Package` · `Risk` · `Acceptance`
+`Meeting` · `Experiment` · `Discovery` · `Assumption` · `Question` · `Feature` · `Requirement` · `Specification` · `Design` · `Release` · `CodeChange` · `Package` · `Risk` · `Acceptance` · `DecisionRecord` · `TicketLink` · `Epic` · `Story` · `Task` · `Subtask` · `Bug` · `Branch` · `Project` · `Playbook` · `Runbook` · `Reference`
+
+### AGER agent / harness graph
+
+`AgentNode` · `Workflow` · `Harness` · `SharedState` · `ToolCapability` · loop/runtime/ops/eval types — see the AGER README.
+
+### DEKC data plane
+
+`Dataset` · `Table` · `View` · `Metric` · lakes, marts, streams, jobs, semantic layer, glossary — see the DEKC README.
 
 ### SAC architecture (second-brain system topology)
 
-See [concept-types.md](./concept-types.md) — includes **Database**, **Cache**, **Event** / **EventSchema**, **WebApp** / **MobileApp**, platform, security, SLO, domain types (140 types in `schemas/types.json` v1.1).
-
+See [concept-types.md](./concept-types.md) — 139 types in `schemas/types.json` v1.4.0 (System, Service, Component, SoftwareContainer, ApiContract, diagrams/wireframes, IAM, network, …).
 ## Relations
 
 **OKF:** `depends_on` · `routes_to` · `implements` · `documents` · `uses` · `owns` · `supersedes` · `related_to` · `tracks` · `maps_to`  
