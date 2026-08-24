@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Noun-ownership migration guide:
+  [`docs/user_guide/noun-ownership-migration.md`](docs/user_guide/noun-ownership-migration.md).
+
 ## 0.5.0 — 2026-08-24
 
 ### Changed

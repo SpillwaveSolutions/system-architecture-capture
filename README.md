@@ -312,6 +312,7 @@ SAC  ← reverse-engineered runtime & infrastructure topology  (this repo)
 
 ## Docs
 
+- **[Noun-ownership migration](./docs/user_guide/noun-ownership-migration.md)** — upgrade an existing SAC tree to 0.5.0
 - [Onboarding](./docs/ONBOARDING.md) · [Grok Bot](./docs/GROK_BOT.md) · [Deep Agents](./docs/LANG_CHAIN_DEEP_AGENTS.md) · [Isolation](./docs/ISOLATION.md)
 - [PRD](./docs/prd.md) · [Design](./docs/design.md) · [OKF schemas](./docs/okf-schemas.md) · [Concept types](./docs/concept-types.md) · [Gaps](./docs/concept-gaps.md) · [Typed edges](./docs/typed-edges.md)
 - Machine registry: [`schemas/types.json`](./schemas/types.json)
