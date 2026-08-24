@@ -11,7 +11,7 @@ Works on **Claude Code**, **Grok Build**, **Codex**, **Cursor**, **OpenCode**, *
 | | |
 |---|---|
 | **Plugin name** | `system-architecture-capture` |
-| **Version** | 0.4.3 |
+| **Version** | 0.5.0 |
 | **License** | MIT |
 | **Depends on** | [PKC](https://github.com/SpillwaveSolutions/project-knowledge-capture) · [OKF](https://github.com/SpillwaveSolutions/okf-plugin) |
 
@@ -31,13 +31,97 @@ Works on **Claude Code**, **Grok Build**, **Codex**, **Cursor**, **OpenCode**, *
 Write isolation (worktree + PR) is in [docs/ISOLATION.md](docs/ISOLATION.md). Public examples use fictional **lumenfield-detector** and **northstar-console** only. Point `SECOND_BRAIN_ROOT` at a path the human already has. Never hard-code a private remote.
 
 
+## Nouns (this plugin)
+
+SAC owns **architecture / runtime topology**. Catalog and ContextPack live in okf-plugin. Agent/harness types live in AGER. Data-plane types live in DEKC. Project-memory types live in PKC.
+
+139 types:
+
+ActivityDiagram, Actor, AdminApp, AlertRule, ApiContract, ApiGateway, ArchitectureDiagram, ArtifactRegistry, AuditTrail, AuthConfig, BackupPolicy, Bff, BlastRadius, BoundedContext, BuildArtifact, BusinessCapability, C4CodeDiagram, C4ComponentDiagram, C4ContainerDiagram, C4ContextDiagram, C4Diagram, Cache, Cdn, Certificate, Channel, Class, ClassDiagram, Cli, CloudAccount, Cluster, CodeNamespace, ComplianceControl, Component, ComponentDiagram, ConfigMap, ConfigSource, ContainerImage, ContractTest, ControlFlow, CronSchedule, Dashboard, DataFlow, DataFlowDiagram, DataLake, DataStore, DataWarehouse, Database, DeadLetterQueue, Deployment, DeploymentDiagram, DesktopApp, Diagram, DisasterRecoveryPlan, DnsZone, Domain, EncryptionKey, Endpoint, Enum, Environment, ErdDiagram, Event, EventSchema, EventStream, ExternalSystem, FeatureFlag, Field, FileSystem, Function, GlossaryTerm, GraphQlSchema, HelmChart, IamPolicy, IamRole, IdentityProvider, Incident, InfrastructureStack, Integration, Interface, Job, LoadBalancer, LogSource, MessageQueue, Method, Migration, MobileApp, Module, Monorepo, Namespace, NatGateway, Network, NodePool, ObjectStorage, Ownership, Package, Parameter, Permission, Person, Pipeline, PolicyDocument, PrivateLink, Product, Quota, RateLimit, Region, Repository, Runtime, Saga, SchemaRegistry, Sdk, SearchIndex, SecretStore, SecurityGroup, SequenceDiagram, ServerlessFunction, Service, ServiceAccount, ServiceMesh, Sla, Sli, Slo, SoftwareContainer, StateMachineDiagram, Subnet, Subscription, System, SystemLandscapeDiagram, TerraformModule, TestSuite, Topic, TraceSource, UserJourney, VectorStore, Volume, Vpc, Vpn, Waf, WebApp, Webhook, Wireframe
+
+| Catalog directory | Nouns |
+|-------------------|-------|
+| `actors` | Actor, Person |
+| `analytics` | DataWarehouse, DataLake |
+| `apis` | ApiContract, Endpoint, Webhook, GraphQlSchema |
+| `blast-radius` | BlastRadius |
+| `build-artifacts` | BuildArtifact |
+| `caches` | Cache |
+| `channels` | Channel |
+| `classes` | Class, Interface, Enum |
+| `clients` | WebApp, MobileApp, DesktopApp, AdminApp |
+| `cloud` | CloudAccount, Region |
+| `clusters` | Cluster, Namespace, NodePool |
+| `compliance` | ComplianceControl |
+| `components` | Component |
+| `config` | ConfigSource, ConfigMap, RateLimit, Quota |
+| `containers` | ContainerImage |
+| `containers-c4` | SoftwareContainer |
+| `controlflows` | ControlFlow |
+| `dataflows` | DataFlow |
+| `datastores` | DataStore, Database, VectorStore |
+| `deployments` | Deployment |
+| `designs` | DisasterRecoveryPlan |
+| `diagrams` | Diagram, Wireframe, ArchitectureDiagram, ComponentDiagram, SequenceDiagram, ActivityDiagram, StateMachineDiagram, ClassDiagram, ErdDiagram, DeploymentDiagram, DataFlowDiagram, C4Diagram, C4ContextDiagram, C4ContainerDiagram, C4ComponentDiagram, C4CodeDiagram, SystemLandscapeDiagram |
+| `domains` | Domain, BoundedContext, BusinessCapability |
+| `environments` | Environment |
+| `events` | Event, EventSchema |
+| `feature-flags` | FeatureFlag |
+| `fields` | Field |
+| `functions` | Function |
+| `glossary` | GlossaryTerm |
+| `iam` | IamRole, IamPolicy, ServiceAccount, Permission |
+| `identity` | IdentityProvider, AuthConfig |
+| `incidents` | Incident |
+| `infrastructure` | InfrastructureStack, HelmChart, TerraformModule |
+| `integrations` | Integration, ExternalSystem |
+| `jobs` | Job, CronSchedule |
+| `journeys` | UserJourney |
+| `meshes` | ServiceMesh |
+| `messaging` | MessageQueue, Topic, SchemaRegistry, EventStream, Subscription, DeadLetterQueue |
+| `methods` | Method, Parameter |
+| `migrations` | Migration |
+| `modules` | Module, CodeNamespace |
+| `networks` | Network, Vpc, Subnet, SecurityGroup, LoadBalancer, ApiGateway, DnsZone, Cdn, PrivateLink, Vpn, NatGateway |
+| `observability` | TraceSource, LogSource, Slo, Sla, Sli, AlertRule, Dashboard |
+| `ownership` | Ownership |
+| `packages` | Package, Sdk, Cli |
+| `pipelines` | Pipeline |
+| `products` | Product |
+| `registries` | ArtifactRegistry |
+| `repositories` | Repository, Monorepo |
+| `runtimes` | Runtime |
+| `search` | SearchIndex |
+| `secrets` | SecretStore |
+| `security` | Certificate, Waf, EncryptionKey, PolicyDocument, AuditTrail |
+| `serverless` | ServerlessFunction |
+| `services` | Service, Bff |
+| `storage` | ObjectStorage, FileSystem, Volume, BackupPolicy |
+| `systems` | System |
+| `tests` | TestSuite, ContractTest |
+| `workflows` | Saga |
+
+### Dual-owned names
+
+These strings appear in more than one plugin. They are **not** the same noun:
+
+| Name | SAC meaning | Also in |
+|------|-------------|---------|
+| `Package` | Build package / module in the topology | PKC project-memory Package (what shipped) |
+| `Dashboard` | Observability dashboard | DEKC analytics Dashboard |
+| `DataLake` | Platform lake in the estate | DEKC medallion DataLake |
+| `GlossaryTerm` | Architecture glossary | DEKC data-domain glossary |
+| `RateLimit` | Config / gateway quota | AGER runtime RateLimit |
+
+API surface is `ApiContract` (not a generic `API`). Diagrams and wireframes live here, not in DEKC.
+
 ## What this second brain is for
 
 | In scope (SAC) | Adjacent (other second brains) |
 |----------------|--------------------------------|
 | Services, packages, APIs, deps | Product narrative only (PKC) |
 | Containers, serverless, runtime | Meeting notes without system links |
-| IaC, network, IAM, secrets | Pure agent/harness graphs (okf-plugin) |
+| IaC, network, IAM, secrets | Pure agent/harness graphs (AGER) |
 | Pipelines, deploys, environments | |
 | IdP / OAuth / SSO evidence | |
 | Wiki + tickets as architecture context | |

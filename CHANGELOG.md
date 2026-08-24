@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.5.0 — 2026-08-24
+
+### Changed
+
+- **Noun ownership.** SAC types.json 1.4.0 is architecture/runtime topology
+  only. PKC / DEKC / AGER / okf-plugin own their own types. Validators merge
+  sibling schema packs.
+- README lists all 139 SAC nouns (comma-delimited + grouped by catalog).
+- Dual-owned names documented: `Package` (also PKC), `Dashboard` / `DataLake` /
+  `GlossaryTerm` (also DEKC), `RateLimit` (also AGER).
+
 ## 0.4.4
 
 - Three-host hooks: Codex + Cursor-native when Claude hooks exist.

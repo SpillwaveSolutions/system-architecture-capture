@@ -1,6 +1,6 @@
 {
   "name": "system-architecture-capture",
-  "version": "0.4.4",
+  "version": "0.5.0",
   "description": "System Architecture Capture: reverse-engineer services, packages, IaC, CI/CD, IAM, and runtime topology into a durable OKF knowledge graph. Multi-host bindings and write isolation for shared second brains.",
   "author": {
     "name": "Rick Hightower"

@@ -1,195 +1,21 @@
 {
-  "schema_version": "1.3.0",
+  "schema_version": "1.4.0",
   "name": "sac-okf-schema-pack",
-  "description": "Standard OKF schemas for the SAC second brain: system architecture, code structure (modules/classes/methods/functions), and diagrams (Mermaid + PlantUML wireframes, architecture, component, activity, state, class, ERD)",
+  "description": "SAC architecture nouns only. PKC / DEKC / AGER / okf-plugin own their own types. Validators merge sibling schema packs.",
   "envelope": "okf-concept-envelope.json",
   "okf_version": "0.2",
   "types": [
     {
-      "type": "Dataset",
-      "directory": "knowledge",
-      "layer": "OKF knowledge",
-      "description": "Structured dataset"
-    },
-    {
-      "type": "Table",
-      "directory": "knowledge",
-      "layer": "OKF knowledge",
-      "description": "Table / relation"
-    },
-    {
-      "type": "Metric",
-      "directory": "observability",
-      "layer": "OKF knowledge",
-      "description": "Metric or KPI"
-    },
-    {
-      "type": "Playbook",
-      "directory": "designs",
-      "layer": "OKF knowledge",
-      "description": "Operational playbook"
-    },
-    {
-      "type": "Runbook",
-      "directory": "designs",
-      "layer": "OKF knowledge",
-      "description": "Incident/ops runbook"
-    },
-    {
-      "type": "API",
-      "directory": "apis",
-      "layer": "OKF knowledge",
-      "description": "API surface (alias of ApiContract)"
-    },
-    {
-      "type": "Reference",
-      "directory": "designs",
-      "layer": "OKF knowledge",
-      "description": "General reference node"
-    },
-    {
-      "type": "AgentNode",
-      "directory": "agents",
-      "layer": "OKF harness",
-      "description": "Agent in harness graph"
-    },
-    {
-      "type": "Workflow",
-      "directory": "pipelines",
-      "layer": "OKF harness",
-      "description": "Workflow / process"
-    },
-    {
-      "type": "Harness",
-      "directory": "systems",
-      "layer": "OKF harness",
-      "description": "Agent harness"
-    },
-    {
-      "type": "DecisionRecord",
-      "directory": "decisions",
-      "layer": "OKF harness",
-      "description": "ADR / decision"
-    },
-    {
-      "type": "SharedState",
-      "directory": "config",
-      "layer": "OKF harness",
-      "description": "Shared runtime/session state"
-    },
-    {
-      "type": "ToolCapability",
-      "directory": "packages",
-      "layer": "OKF harness",
-      "description": "Tool or capability node"
-    },
-    {
-      "type": "TicketLink",
-      "directory": "tickets",
-      "layer": "OKF harness",
-      "description": "Link to external ticket/worklog"
-    },
-    {
-      "type": "Catalog",
-      "directory": null,
-      "layer": "OKF core",
-      "description": "Directory index"
-    },
-    {
-      "type": "Meeting",
-      "directory": "meetings",
-      "layer": "PKC",
-      "description": "Captured meeting"
-    },
-    {
-      "type": "Experiment",
-      "directory": "experiments",
-      "layer": "PKC",
-      "description": "Spike / experiment"
-    },
-    {
-      "type": "Discovery",
-      "directory": "discoveries",
-      "layer": "PKC",
-      "description": "Research finding"
-    },
-    {
-      "type": "Assumption",
-      "directory": "assumptions",
-      "layer": "PKC",
-      "description": "Working hypothesis"
-    },
-    {
-      "type": "Question",
-      "directory": "questions",
-      "layer": "PKC",
-      "description": "Open question"
-    },
-    {
-      "type": "Feature",
-      "directory": "features",
-      "layer": "PKC",
-      "description": "Product feature"
-    },
-    {
-      "type": "Requirement",
-      "directory": "requirements",
-      "layer": "PKC",
-      "description": "Requirement"
-    },
-    {
-      "type": "Specification",
-      "directory": "specs",
-      "layer": "PKC",
-      "description": "Spec"
-    },
-    {
-      "type": "Design",
-      "directory": "designs",
-      "layer": "PKC",
-      "description": "Design doc"
-    },
-    {
-      "type": "Release",
-      "directory": "releases",
-      "layer": "PKC",
-      "description": "Release"
-    },
-    {
-      "type": "CodeChange",
-      "directory": "code",
-      "layer": "PKC",
-      "description": "PR / code change"
-    },
-    {
       "type": "Package",
       "directory": "packages",
-      "layer": "PKC/SAC",
-      "description": "Build package/module"
+      "layer": "SAC",
+      "description": "Build package/module (SAC runtime/build unit; PKC also uses Package for project memory)"
     },
     {
       "type": "Module",
       "directory": "modules",
       "layer": "SAC",
       "description": "Source module within a package (language package/namespace)"
-    },
-    {
-      "type": "Risk",
-      "directory": "risks",
-      "layer": "PKC",
-      "description": "Risk"
-    },
-    {
-      "type": "Acceptance",
-      "directory": "acceptance",
-      "layer": "PKC",
-      "description": "Acceptance criterion"
-    },
-    {
-      "type": "ContextPack",
-      "directory": "packs",
-      "layer": "PKC",
-      "description": "Progressive disclosure pack"
     },
     {
       "type": "System",
