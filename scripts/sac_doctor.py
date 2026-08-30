@@ -55,7 +55,7 @@ def main(argv: list[str] | None = None) -> int:
         print("  types:", ", ".join(f"{k}:{v}" for k, v in list(result["types"].items())[:12]))
         tc = result.get("toolchain") or {}
         rg = (tc.get("rg") or {})
-        print(f"  rg: {'found ' + str(rg.get('path')) if rg.get('found') else 'missing (full-scan search)'}")
+        print(f"  rg: {'found ' + str(rg.get('path')) if rg.get('found') else 'missing (full-scan search/pack inbound)'}")
         if result["thin_concepts"]:
             print(f"  thin concepts: {len(result['thin_concepts'])}")
         for i in result["issues"][:15]:

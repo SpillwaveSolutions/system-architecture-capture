@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import sys
 import tempfile
@@ -666,6 +667,71 @@ class TestRequiredIdentity(unittest.TestCase):
             )
             self.assertNotEqual(r.returncode, 0)
             self.assertIn("identity", (r.stdout + r.stderr).lower())
+
+
+class TestPackReverseIndex(unittest.TestCase):
+    """Inbound edges: rg prefilter must match a full scan (same node set)."""
+
+    FAKE_RG = ROOT / "tests/fixtures/fake_rg.py"
+
+    def setUp(self):
+        self._saved = os.environ.get("SAC_RG_PATH")
+        self.FAKE_RG.chmod(0o755)
+        os.environ["SAC_RG_PATH"] = str(self.FAKE_RG)
+
+    def tearDown(self):
+        if self._saved is None:
+            os.environ.pop("SAC_RG_PATH", None)
+        else:
+            os.environ["SAC_RG_PATH"] = self._saved
+
+    def test_inbound_only_neighbor_is_in_pack(self):
+        """A concept that points *at* the seed used to be invisible unless the
+        seed pointed back. load_graph undirected that; rg inbound must too."""
+        tmp = Path(tempfile.mkdtemp())
+        try:
+            services = tmp / "services"
+            services.mkdir()
+            (tmp / "index.md").write_text(
+                '---\nokf_version: "0.2"\ntitle: t\n---\n', encoding="utf-8"
+            )
+            (services / "root.md").write_text(
+                "---\ntype: Service\ntitle: Root\n---\n# Root\n",
+                encoding="utf-8",
+            )
+            (services / "caller.md").write_text(
+                "---\n"
+                "type: Service\n"
+                "title: Caller\n"
+                "links:\n"
+                "  - target: /services/root.md\n"
+                "    rel: calls\n"
+                "---\n# Caller\n",
+                encoding="utf-8",
+            )
+            scan = pack(tmp, "services/root.md", hops=1, max_nodes=8, use_rg=False)
+            accel = pack(tmp, "services/root.md", hops=1, max_nodes=8, use_rg=True)
+            scan_paths = {c["path"] for c in scan["concepts"]}
+            accel_paths = {c["path"] for c in accel["concepts"]}
+            self.assertIn("/services/caller.md", scan_paths)
+            self.assertEqual(scan_paths, accel_paths)
+            self.assertEqual(accel["reverse_index"], "rg")
+            self.assertEqual(scan["reverse_index"], "scan")
+        finally:
+            shutil.rmtree(tmp)
+
+    def test_pack_rg_matches_scan_on_sample(self):
+        scan = pack(SAMPLE, "services/order-service.md", hops=2, max_nodes=200, use_rg=False)
+        accel = pack(SAMPLE, "services/order-service.md", hops=2, max_nodes=200, use_rg=True)
+        self.assertGreaterEqual(scan["node_count"], 3)
+        self.assertEqual(scan["node_count"], accel["node_count"])
+        self.assertEqual(
+            sorted(c["path"] for c in scan["concepts"]),
+            sorted(c["path"] for c in accel["concepts"]),
+        )
+        self.assertEqual(accel["reverse_index"], "rg")
+        self.assertEqual(scan["reverse_index"], "scan")
+        self.assertIn("flowchart", accel["mermaid"])
 
 
 if __name__ == "__main__":

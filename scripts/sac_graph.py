@@ -14,6 +14,23 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from sac_common import iter_concepts, parse_frontmatter, resolve_knowledge_root  # noqa: E402
 
 
+def iter_link_edges(src: str, fm: dict[str, Any]) -> list[tuple[str, str, str]]:
+    """(src, tgt, rel) from frontmatter `links[]`. Shared by load_graph and pack."""
+    out: list[tuple[str, str, str]] = []
+    for link in fm.get("links") or []:
+        if not isinstance(link, dict):
+            continue
+        tgt = link.get("target")
+        rel_type = link.get("rel") or "related_to"
+        if not tgt:
+            continue
+        tgt = str(tgt)
+        if not tgt.startswith("/"):
+            tgt = "/" + tgt.lstrip("./")
+        out.append((src, tgt, str(rel_type)))
+    return out
+
+
 def load_graph(bundle: Path) -> dict[str, Any]:
     nodes: list[dict[str, Any]] = []
     edges: list[dict[str, Any]] = []
@@ -31,16 +48,8 @@ def load_graph(bundle: Path) -> dict[str, Any]:
         }
         nodes.append(node)
         by_path[rel] = node
-        for link in fm.get("links") or []:
-            if not isinstance(link, dict):
-                continue
-            tgt = link.get("target")
-            rel_type = link.get("rel") or "related_to"
-            if not tgt:
-                continue
-            if not str(tgt).startswith("/"):
-                tgt = "/" + str(tgt)
-            edges.append({"from": rel, "to": tgt, "rel": rel_type})
+        for src, tgt, rel_type in iter_link_edges(rel, fm):
+            edges.append({"from": src, "to": tgt, "rel": rel_type})
     return {"nodes": nodes, "edges": edges, "node_count": len(nodes), "edge_count": len(edges)}
 
 
