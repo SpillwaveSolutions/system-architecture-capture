@@ -3,6 +3,10 @@
 
 Bodies off unless that node is the pack root. Token budget is fail-closed
 (default 1/4 of SECOND_BRAIN_WINDOW_TOKENS). Node clip is not a token budget.
+
+Inbound/backlink discovery: ripgrep prefilter → full scan. Outbound is always
+parsed from the current file. Ranking/graph identity matches a full scan.
+`--no-rg` forces the linear walk. rg is optional and never installed from a hook.
 """
 
 from __future__ import annotations
@@ -15,8 +19,16 @@ from collections import deque
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from sac_common import concept_ref, parse_frontmatter, resolve_knowledge_root  # noqa: E402
-from sac_graph import adjacency, load_graph, mermaid  # noqa: E402
+from sac_common import (  # noqa: E402
+    concept_ref,
+    find_rg,
+    is_concept_path,
+    iter_concepts,
+    parse_frontmatter,
+    resolve_knowledge_root,
+    rg_list_files,
+)
+from sac_graph import iter_link_edges, mermaid  # noqa: E402
 
 DEFAULT_WINDOW_TOKENS = 128_000
 PACK_BUDGET_DENOMINATOR = 4
@@ -61,6 +73,144 @@ def resolve_pack_budget(
     return window, budget
 
 
+def _parse_rel(bundle: Path, rel: str) -> tuple[dict, str]:
+    fp = bundle / rel.lstrip("/")
+    if not fp.is_file():
+        return {}, ""
+    try:
+        return parse_frontmatter(fp.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError):
+        return {}, ""
+
+
+def extract_edges(
+    bundle: Path,
+    path: Path,
+    *,
+    cache: dict[str, list[tuple[str, str, str]]] | None = None,
+) -> list[tuple[str, str, str]]:
+    """(rel_type, tgt, label) authored on this file. Cached per pack() call."""
+    key = str(path.resolve()) if path.exists() else str(path)
+    if cache is not None and key in cache:
+        return cache[key]
+    try:
+        rel = "/" + path.resolve().relative_to(bundle.resolve()).as_posix()
+    except ValueError:
+        rel = "/" + path.name
+    fm, _body = _parse_rel(bundle, rel)
+    edges = [(r, tgt, Path(tgt).stem) for _src, tgt, r in iter_link_edges(rel, fm)]
+    if cache is not None:
+        cache[key] = edges
+    return edges
+
+
+def _inbound_via_rg(
+    bundle: Path,
+    target: str,
+    *,
+    cache: dict[str, list[tuple[str, str, str]]] | None = None,
+) -> list[tuple[str, str, str]] | None:
+    """Files that mention `target`, parsed for real inbound edges. None = fall back."""
+    needles = [target]
+    if target.startswith("/"):
+        needles.append(target.lstrip("/"))
+    hits = rg_list_files(bundle, needles[:1], fixed_string=True, ignore_case=False)
+    if hits is None:
+        return None
+    inbound: list[tuple[str, str, str]] = []
+    seen: set[tuple[str, str, str]] = set()
+    for path in hits:
+        if not is_concept_path(bundle, path):
+            continue
+        try:
+            src = "/" + path.relative_to(bundle).as_posix()
+        except ValueError:
+            continue
+        if src == target:
+            continue
+        for rel_type, tgt, label in extract_edges(bundle, path, cache=cache):
+            if tgt != target:
+                continue
+            key = (rel_type, src, label)
+            if key in seen:
+                continue
+            seen.add(key)
+            inbound.append((rel_type, src, label))
+    return inbound
+
+
+def build_reverse_index(
+    bundle: Path,
+    *,
+    cache: dict[str, list[tuple[str, str, str]]] | None = None,
+) -> dict[str, list[tuple[str, str, str]]]:
+    """Map each target path to the edges that point at it.
+
+    pack() used to walk an undirected load_graph, so inbound was free but every
+    pack paid a full-bundle parse. Catalog index.md is skipped (iter_concepts)
+    so directory listings do not drag the whole folder into the pack.
+    """
+    index: dict[str, list[tuple[str, str, str]]] = {}
+    for path in iter_concepts(bundle):
+        src = "/" + path.relative_to(bundle).as_posix()
+        for rel_type, tgt, label in extract_edges(bundle, path, cache=cache):
+            index.setdefault(tgt, []).append((rel_type, src, label))
+    return index
+
+
+class ReverseIndex:
+    """Inbound edges: rg → full scan. No SQLite rung in SAC yet."""
+
+    def __init__(
+        self,
+        bundle: Path,
+        *,
+        cache: dict[str, list[tuple[str, str, str]]] | None = None,
+        use_rg: bool | None = None,
+    ):
+        self.bundle = bundle
+        self.cache = cache if cache is not None else {}
+        self._full: dict[str, list[tuple[str, str, str]]] | None = None
+        self._memo: dict[str, list[tuple[str, str, str]]] = {}
+        if use_rg is False:
+            self._rg = False
+        else:
+            self._rg = bool(find_rg())
+
+    @property
+    def engine(self) -> str:
+        return "rg" if self._rg else "scan"
+
+    def get(self, target: str, default: list | None = None) -> list[tuple[str, str, str]]:
+        if target in self._memo:
+            return self._memo[target]
+        if self._rg:
+            found = _inbound_via_rg(self.bundle, target, cache=self.cache)
+            if found is not None:
+                self._memo[target] = found
+                return found
+            self._rg = False
+        if self._full is None:
+            self._full = build_reverse_index(self.bundle, cache=self.cache)
+        edges = self._full.get(target, default or [])
+        self._memo[target] = edges
+        return edges
+
+
+def _resolve_start(bundle: Path, start: str) -> str:
+    start = concept_ref(start, "services")
+    fp = bundle / start.lstrip("/")
+    if fp.is_file():
+        return start
+    stem = Path(start).stem
+    needle = start.rstrip(".md")
+    for p in iter_concepts(bundle):
+        rel = "/" + p.relative_to(bundle).as_posix()
+        if p.stem == stem or needle in rel:
+            return rel
+    return start
+
+
 def pack(
     bundle: Path,
     start: str,
@@ -68,55 +218,109 @@ def pack(
     hops: int = 2,
     max_nodes: int = 20,
     tiny: bool = False,
+    use_rg: bool | None = None,
 ) -> dict:
     if tiny:
         hops = 1
         max_nodes = 8
-    start = concept_ref(start, "services")
-    g = load_graph(bundle)
-    adj = adjacency(g, directed=False)
-    titles = {n["id"]: n for n in g["nodes"]}
-    if start not in titles:
-        for nid in titles:
-            if start.rstrip(".md") in nid or Path(start).stem in nid:
-                start = nid
-                break
+    start = _resolve_start(bundle, start)
+    parse_cache: dict[str, list[tuple[str, str, str]]] = {}
+    inbound = ReverseIndex(bundle, cache=parse_cache, use_rg=use_rg)
+
     ordered = [start]
     seen = {start}
     q = deque([(start, 0)])
+    edge_list: list[dict[str, str]] = []
+    seen_edges: set[tuple[str, str, str]] = set()
+    node_meta: dict[str, dict] = {}
+
     while q and len(ordered) < max_nodes:
         cur, d = q.popleft()
-        if d >= hops:
+        fp = bundle / cur.lstrip("/")
+        fm, body = _parse_rel(bundle, cur)
+        if fp.is_file():
+            node_meta[cur] = {
+                "id": cur,
+                "path": cur,
+                "type": fm.get("type") or "Concept",
+                "title": fm.get("title") or Path(cur).stem,
+                "tags": fm.get("tags") or [],
+                "status": fm.get("status"),
+                "description": fm.get("description"),
+                "links": fm.get("links") or [],
+                "body": body,
+            }
+        if d >= hops or not fp.is_file():
             continue
-        for nxt, _rel in adj.get(cur, []):
-            if nxt not in seen:
-                seen.add(nxt)
-                ordered.append(nxt)
-                q.append((nxt, d + 1))
-            if len(ordered) >= max_nodes:
-                break
+        neighbours: list[tuple[str, str, str, str]] = [
+            (cur, tgt, rel_type, label)
+            for rel_type, tgt, label in extract_edges(bundle, fp, cache=parse_cache)
+        ]
+        neighbours += [
+            (src, cur, rel_type, label)
+            for rel_type, src, label in inbound.get(cur, [])
+        ]
+        for src, tgt, rel_type, label in neighbours:
+            key = (src, tgt, rel_type)
+            if key not in seen_edges:
+                seen_edges.add(key)
+                edge_list.append({"from": src, "to": tgt, "rel": rel_type, "label": label})
+            other = tgt if src == cur else src
+            if other not in seen:
+                seen.add(other)
+                ordered.append(other)
+                q.append((other, d + 1))
+                if len(ordered) >= max_nodes:
+                    break
+
     concepts = []
+    mermaid_nodes = []
     for path in ordered:
+        meta = node_meta.get(path)
         fp = bundle / path.lstrip("/")
-        if not fp.is_file():
+        if meta is None and not fp.is_file():
             concepts.append({"path": path, "missing": True})
             continue
-        fm, body = parse_frontmatter(fp.read_text(encoding="utf-8"))
+        if meta is None:
+            fm, body = _parse_rel(bundle, path)
+            meta = {
+                "id": path,
+                "path": path,
+                "type": fm.get("type") or "Concept",
+                "title": fm.get("title") or Path(path).stem,
+                "tags": fm.get("tags") or [],
+                "status": fm.get("status"),
+                "description": fm.get("description"),
+                "links": fm.get("links") or [],
+                "body": body,
+            }
         is_root = path == start
         concepts.append(
             {
                 "path": path,
-                "type": fm.get("type"),
-                "title": fm.get("title"),
-                "description": fm.get("description"),
-                "tags": fm.get("tags") or [],
-                "links": fm.get("links") or [],
-                "body": body if is_root else "",
+                "type": meta.get("type"),
+                "title": meta.get("title"),
+                "description": meta.get("description"),
+                "tags": meta.get("tags") or [],
+                "links": meta.get("links") or [],
+                "body": meta.get("body") if is_root else "",
             }
         )
+        mermaid_nodes.append(
+            {
+                "id": path,
+                "path": path,
+                "type": meta.get("type") or "Concept",
+                "title": meta.get("title") or Path(path).stem,
+                "tags": meta.get("tags") or [],
+                "status": meta.get("status"),
+            }
+        )
+
+    ids = {n["id"] for n in mermaid_nodes}
     sub = {
-        "nodes": [titles[p] for p in ordered if p in titles],
-        "edges": [e for e in g["edges"] if e["from"] in seen and e["to"] in seen],
+        "nodes": mermaid_nodes,
+        "edges": [e for e in edge_list if e["from"] in ids and e["to"] in ids],
     }
     return {
         "start": start,
@@ -125,6 +329,7 @@ def pack(
         "node_count": len(concepts),
         "concepts": concepts,
         "mermaid": mermaid(sub, max_nodes=max_nodes),
+        "reverse_index": inbound.engine,
         "excluded_note": (
             "Nodes beyond hops/max_nodes omitted for progressive disclosure. "
             "Node clip is not a token budget."
@@ -212,9 +417,42 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--mermaid", action="store_true")
     p.add_argument("--json", action="store_true")
     p.add_argument("--write", default=None, help="Directory or file to write pack markdown")
+    p.add_argument(
+        "--rg",
+        action="store_true",
+        help="Use ripgrep to find inbound edges (default when rg is on PATH)",
+    )
+    p.add_argument(
+        "--no-rg",
+        action="store_true",
+        help="Disable ripgrep; full-scan inbound (same graph, slower)",
+    )
     args = p.parse_args(argv)
+    if args.rg and args.no_rg:
+        print("error: --rg and --no-rg are mutually exclusive", file=sys.stderr)
+        return 2
+    use_rg: bool | None
+    if args.no_rg:
+        use_rg = False
+    elif args.rg:
+        use_rg = True
+        if not find_rg():
+            print(
+                "sac_pack: rg not found; falling back to scan. "
+                "Install ripgrep or pass --no-rg.",
+                file=sys.stderr,
+            )
+    else:
+        use_rg = None
     bundle = resolve_knowledge_root(Path(args.repo).resolve(), args.bundle)
-    data = pack(bundle, args.concept, hops=args.hops, max_nodes=args.max_nodes, tiny=args.tiny)
+    data = pack(
+        bundle,
+        args.concept,
+        hops=args.hops,
+        max_nodes=args.max_nodes,
+        tiny=args.tiny,
+        use_rg=use_rg,
+    )
     try:
         if args.mermaid:
             window, budget = resolve_pack_budget(args.max_tokens, args.window_tokens)

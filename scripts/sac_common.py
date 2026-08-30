@@ -1158,6 +1158,7 @@ def rg_list_files(
     patterns: list[str],
     *,
     ignore_case: bool = True,
+    fixed_string: bool = False,
     timeout: float = 30.0,
 ) -> list[Path] | None:
     rg = find_rg()
@@ -1172,6 +1173,8 @@ def rg_list_files(
         cmd = [rg, "-l", "--no-messages", "--color", "never"]
         if ignore_case:
             cmd.append("-i")
+        if fixed_string:
+            cmd.append("-F")
         cmd.extend(["--glob", "*.md", "--", pat, str(root)])
         try:
             proc = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout, check=False)
@@ -1190,6 +1193,21 @@ def rg_list_files(
         if not matched:
             return []
     return sorted(matched or [])
+
+
+def is_concept_path(bundle: Path, path: Path) -> bool:
+    """Same skip rules as iter_concepts: not index.md, log.md, or packs/."""
+    if path.suffix.lower() not in {".md", ".markdown"}:
+        return False
+    if path.name in {"index.md", "log.md"}:
+        return False
+    try:
+        parts = path.resolve().relative_to(bundle.resolve()).parts
+    except ValueError:
+        return False
+    if "packs" in parts:
+        return False
+    return True
 
 
 def iter_concepts(bundle: Path) -> list[Path]:

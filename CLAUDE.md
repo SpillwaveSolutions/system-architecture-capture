@@ -24,6 +24,7 @@ bash tools/ci-local.sh
 4. Adding a capability = skill + command + script + CI typecheck list + README.
 5. Version bumps: `.claude-plugin/*`, `.grok-plugin/*`, `.codex-plugin/*`, `.opencode-plugin/*`, `marketplace.json`, `package.json`, README.
 6. Depends on PKC + OKF conceptually; scanners run standalone.
+7. Ripgrep is an optional accelerator (`find_rg()` / `SAC_RG_PATH`). Search and pack inbound must keep working when `rg` is absent. Never install packages from a hook.
 
 ## Reference
 

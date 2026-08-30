@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## 0.5.3 — 2026-08-30
+
+- **rg-backed reverse index** in `sac_pack.py`. Inbound/backlink discovery is
+  O(subgraph) when `rg` is on PATH (`SAC_RG_PATH` / `PKC_RG_PATH` / `OKF_RG_PATH`);
+  otherwise the previous full scan. Outbound is always parsed from the current
+  file, so the graph matches `--no-rg`. `--rg` / `--no-rg` flags. Result JSON
+  includes `reverse_index` (`rg` | `scan`). Never installed from a hook.
+
 ## 0.5.2 — 2026-08-30
 
 - `sac_search.py` uses ripgrep as a candidate prefilter when `rg` is on PATH
