@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.5.2 — 2026-08-30
+
 - `sac_search.py` uses ripgrep as a candidate prefilter when `rg` is on PATH
   (`SAC_RG_PATH` / `PKC_RG_PATH` / `OKF_RG_PATH`). `--no-rg` forces a full scan.
   Ranking stays in Python. `sac_doctor.py` reports whether rg was found.
