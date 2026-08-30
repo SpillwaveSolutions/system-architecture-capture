@@ -10,13 +10,29 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from sac_common import iter_concepts, parse_frontmatter, resolve_knowledge_root  # noqa: E402
+from sac_common import (  # noqa: E402
+    find_rg,
+    iter_concepts,
+    parse_frontmatter,
+    resolve_knowledge_root,
+    rg_list_files,
+)
 
 
-def search(bundle: Path, query: str, *, limit: int = 20) -> dict:
+def search(bundle: Path, query: str, *, limit: int = 20, use_rg: bool | None = None) -> dict:
     terms = [t.lower() for t in re.split(r"\s+", query.strip()) if t]
     results = []
-    for p in iter_concepts(bundle):
+    files = iter_concepts(bundle)
+    engine = "scan"
+    if use_rg is not False:
+        hits = rg_list_files(bundle, terms, ignore_case=True)
+        if hits is not None:
+            engine = "rg"
+            allowed = {p.resolve() for p in hits}
+            files = [p for p in files if p.resolve() in allowed]
+        elif use_rg is True and not find_rg():
+            engine = "scan"
+    for p in files:
         text = p.read_text(encoding="utf-8")
         fm, body = parse_frontmatter(text)
         hay = (text).lower()
@@ -44,7 +60,7 @@ def search(bundle: Path, query: str, *, limit: int = 20) -> dict:
         })
     results.sort(key=lambda r: -r["score"])
     results = results[:limit]
-    return {"query": query, "count": len(results), "results": results}
+    return {"query": query, "count": len(results), "engine": engine, "results": results}
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -54,9 +70,21 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--bundle", default=None)
     p.add_argument("--limit", type=int, default=20)
     p.add_argument("--json", action="store_true")
+    p.add_argument("--rg", action="store_true")
+    p.add_argument("--no-rg", action="store_true")
     args = p.parse_args(argv)
     bundle = resolve_knowledge_root(Path(args.repo).resolve(), args.bundle)
-    result = search(bundle, args.query, limit=args.limit)
+    if args.rg and args.no_rg:
+        print("error: --rg and --no-rg are mutually exclusive", file=sys.stderr)
+        return 2
+    use_rg: bool | None
+    if args.no_rg:
+        use_rg = False
+    elif args.rg:
+        use_rg = True
+    else:
+        use_rg = None
+    result = search(bundle, args.query, limit=args.limit, use_rg=use_rg)
     if args.json:
         print(json.dumps(result, indent=2))
     else:

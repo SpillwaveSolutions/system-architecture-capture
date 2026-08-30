@@ -15,6 +15,8 @@ import json
 import os
 import re
 import secrets
+import shutil
+import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -1105,6 +1107,89 @@ def concept_ref(value: str, default_dir: str) -> str:
 def path_for_type(concept_type: str, slug: str) -> str:
     directory = TYPE_TO_DIR.get(concept_type, "knowledge")
     return f"{directory}/{slug}.md"
+
+
+def find_rg() -> str | None:
+    for var in ("SAC_RG_PATH", "PKC_RG_PATH", "OKF_RG_PATH", "SECOND_BRAIN_RG_PATH"):
+        override = (os.environ.get(var) or "").strip()
+        if not override:
+            continue
+        p = Path(override)
+        if p.is_file() and os.access(p, os.X_OK):
+            return str(p.resolve())
+        found = shutil.which(override)
+        if found:
+            return found
+    return shutil.which("rg")
+
+
+def rg_install_hints() -> list[str]:
+    if sys.platform == "darwin":
+        return ["brew install ripgrep"]
+    if sys.platform.startswith("linux"):
+        return ["sudo apt-get install -y ripgrep", "sudo dnf install -y ripgrep", "cargo install ripgrep"]
+    if sys.platform == "win32":
+        return ["winget install BurntSushi.ripgrep.MSVC"]
+    return ["cargo install ripgrep"]
+
+
+def toolchain_report() -> dict[str, Any]:
+    rg = find_rg()
+    fts5 = False
+    sqlite_version = None
+    try:
+        import sqlite3
+
+        sqlite_version = sqlite3.sqlite_version
+        con = sqlite3.connect(":memory:")
+        fts5 = any("FTS5" in row[0].upper() for row in con.execute("pragma compile_options"))
+        con.close()
+    except Exception:
+        pass
+    return {
+        "python": sys.version.split()[0],
+        "rg": {"found": bool(rg), "path": rg, "hints": rg_install_hints()},
+        "sqlite": {"version": sqlite_version, "fts5": fts5},
+    }
+
+
+def rg_list_files(
+    root: Path,
+    patterns: list[str],
+    *,
+    ignore_case: bool = True,
+    timeout: float = 30.0,
+) -> list[Path] | None:
+    rg = find_rg()
+    if not rg:
+        return None
+    terms = [p for p in patterns if p]
+    if not terms:
+        return None
+    root = root.resolve()
+    matched: set[Path] | None = None
+    for pat in terms:
+        cmd = [rg, "-l", "--no-messages", "--color", "never"]
+        if ignore_case:
+            cmd.append("-i")
+        cmd.extend(["--glob", "*.md", "--", pat, str(root)])
+        try:
+            proc = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout, check=False)
+        except (OSError, subprocess.TimeoutExpired):
+            return None
+        if proc.returncode not in (0, 1):
+            return None
+        files: set[Path] = set()
+        for line in proc.stdout.splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            p = Path(line)
+            files.add(p.resolve() if p.is_absolute() else (root / p).resolve())
+        matched = files if matched is None else (matched & files)
+        if not matched:
+            return []
+    return sorted(matched or [])
 
 
 def iter_concepts(bundle: Path) -> list[Path]:
