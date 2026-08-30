@@ -1,6 +1,6 @@
 {
   "name": "system-architecture-capture",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "private": true,
   "description": "System Architecture Capture (SAC) \u2014 second brain for system architecture / reverse-engineer modern app systems into OKF/PKC knowledge graphs. Claude / Grok / Codex / Cursor / OpenCode plugin.",
   "scripts": {
