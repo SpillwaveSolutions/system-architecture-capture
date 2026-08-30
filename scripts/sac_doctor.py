@@ -10,7 +10,7 @@ from collections import Counter
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from sac_common import iter_concepts, parse_frontmatter, resolve_knowledge_root  # noqa: E402
+from sac_common import iter_concepts, parse_frontmatter, resolve_knowledge_root, toolchain_report  # noqa: E402
 from sac_validate import validate_bundle  # noqa: E402
 
 
@@ -35,6 +35,7 @@ def doctor(bundle: Path) -> dict:
         "thin_concepts": thin[:30],
         "issues": v["issues"][:50],
         "ok": v["ok"] and v["node_count"] > 0,
+        "toolchain": toolchain_report(),
     }
 
 
@@ -52,6 +53,9 @@ def main(argv: list[str] | None = None) -> int:
         print(f"SAC Doctor — {bundle}")
         print(f"  nodes={result['node_count']} edges={result['edge_count']} errors={result['errors']} warnings={result['warnings']}")
         print("  types:", ", ".join(f"{k}:{v}" for k, v in list(result["types"].items())[:12]))
+        tc = result.get("toolchain") or {}
+        rg = (tc.get("rg") or {})
+        print(f"  rg: {'found ' + str(rg.get('path')) if rg.get('found') else 'missing (full-scan search)'}")
         if result["thin_concepts"]:
             print(f"  thin concepts: {len(result['thin_concepts'])}")
         for i in result["issues"][:15]:
