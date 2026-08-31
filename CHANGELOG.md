@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+## 0.5.4 — 2026-08-31
+
+### Fixed
+
+- Catalog refresh now renders typed YAML title scalars safely. Integer,
+  boolean, and date-like titles no longer crash Markdown link escaping, and
+  falsey values such as `false` and `0` retain their textual labels.
+  ([#35](https://github.com/SpillwaveSolutions/system-architecture-capture/issues/35))
+- The ripgrep-backed reverse index now canonicalizes both match and bundle
+  paths before relativizing them. Inbound edges are no longer silently dropped
+  when the same bundle is addressed through symlink aliases such as `/var` and
+  `/private/var`.
+  ([#36](https://github.com/SpillwaveSolutions/system-architecture-capture/issues/36))
+
 ## 0.5.3 — 2026-08-30
 
 - **rg-backed reverse index** in `sac_pack.py`. Inbound/backlink discovery is
