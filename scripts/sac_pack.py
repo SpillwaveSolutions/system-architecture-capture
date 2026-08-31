@@ -123,7 +123,7 @@ def _inbound_via_rg(
         if not is_concept_path(bundle, path):
             continue
         try:
-            src = "/" + path.relative_to(bundle).as_posix()
+            src = "/" + path.resolve().relative_to(bundle.resolve()).as_posix()
         except ValueError:
             continue
         if src == target:
