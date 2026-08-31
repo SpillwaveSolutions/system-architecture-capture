@@ -909,12 +909,14 @@ def ensure_catalog_index(bundle: Path, catalog: str, title: str | None = None) -
     return index
 
 
-def _escape_link_label(label: str) -> str:
+def _escape_link_label(label: Any) -> str:
     """Make a concept title safe to use as a Markdown link label.
 
-    Kept as one function so the catalog renderers cannot drift apart on it.
+    YAML titles may be typed scalars (for example integers or booleans), so
+    normalize to text at the rendering boundary. Kept as one function so the
+    catalog renderers cannot drift apart on escaping.
     """
-    return label.replace("[", "\\[").replace("]", "\\]")
+    return str(label).replace("[", "\\[").replace("]", "\\]")
 
 
 def refresh_catalog_index(bundle: Path, catalog: str) -> None:
@@ -948,7 +950,10 @@ def refresh_catalog_index(bundle: Path, catalog: str) -> None:
         # yields a MISSING edge rather than a broken one, and validate only
         # reports broken edges — so the concept silently loses its catalog
         # backlink. Bracketed titles are ordinary in exported wiki content.
-        label = _escape_link_label(fm_c.get("title") or p.stem)
+        title_value = fm_c.get("title")
+        label = _escape_link_label(
+            p.stem if title_value is None or title_value == "" else title_value
+        )
         entries.append(f"- [{label}](/{catalog}/{p.name})")
     body += "\n".join(entries) + ("\n" if entries else "_None yet._\n")
     index.write_text(dump_frontmatter(fm) + "\n" + body, encoding="utf-8")
