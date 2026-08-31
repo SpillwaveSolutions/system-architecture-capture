@@ -246,6 +246,30 @@ class TestIngest(unittest.TestCase):
             )
             self.assertGreater(t["created"] + t["updated"], 0)
 
+    def test_wiki_ingest_refreshes_catalog_with_preexisting_integer_title(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            bundle = root / "knowledge"
+            source = root / "wiki"
+            ensure_bundle(bundle)
+            source.mkdir()
+            (bundle / "discoveries" / "legacy-numeric-title.md").write_text(
+                "---\ntype: Discovery\ntitle: 421\n"
+                "description: Pre-existing numeric title\n---\n\n# 421\n",
+                encoding="utf-8",
+            )
+            (source / "new-page.md").write_text("# New page\n", encoding="utf-8")
+
+            stats = ingest_dir(bundle, source, author=AUTHOR)
+
+            self.assertEqual(stats["created"], 1)
+            index = (bundle / "discoveries" / "index.md").read_text(encoding="utf-8")
+            self.assertIn(
+                "- [421](/discoveries/legacy-numeric-title.md)",
+                index,
+            )
+            self.assertIn("- [New page](/discoveries/wiki-new-page.md)", index)
+
 
 class TestTicketNormalization(unittest.TestCase):
     """Raw Jira REST nests everything but `key` under `fields{}`."""
@@ -542,6 +566,29 @@ class TestCatalogIndex(unittest.TestCase):
         strict = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
         self.assertFalse(strict.findall(line))
 
+    def test_yaml_scalar_titles_render_as_text(self):
+        with tempfile.TemporaryDirectory() as td:
+            bundle = Path(td)
+            ensure_bundle(bundle)
+            services = bundle / "services"
+            cases = {
+                "integer": ("421", "421"),
+                "boolean": ("false", "False"),
+                "date-like": ("2026-08-31", "2026-08-31"),
+            }
+            for slug, (yaml_title, _expected) in cases.items():
+                (services / f"{slug}.md").write_text(
+                    f"---\ntype: Service\ntitle: {yaml_title}\n---\n\n# {yaml_title}\n",
+                    encoding="utf-8",
+                )
+
+            refresh_catalog_index(bundle, "services")
+
+            index = (services / "index.md").read_text(encoding="utf-8")
+            for slug, (_yaml_title, expected) in cases.items():
+                with self.subTest(title=slug):
+                    self.assertIn(f"- [{expected}](/services/{slug}.md)", index)
+
     def test_refuses_a_catalog_this_plugin_does_not_declare(self):
         """Bundles are shared with sibling plugins that own other catalogs and
         render them differently. Rewriting one of theirs into our format is not
@@ -736,4 +783,3 @@ class TestPackReverseIndex(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-
