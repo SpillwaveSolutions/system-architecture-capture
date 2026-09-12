@@ -21,6 +21,7 @@ from sac_common import (  # noqa: E402
     CATALOGS,
     dump_frontmatter,
     ensure_bundle,
+    iter_concepts,
     parse_frontmatter,
     refresh_catalog_index,
     resolve_knowledge_root,
@@ -49,6 +50,12 @@ from sac_pack import (  # noqa: E402
     render_summary,
 )
 from sac_orchestrate import orchestrate  # noqa: E402
+from sac_plan import (  # noqa: E402
+    build_plan,
+    load_plan,
+    mark_checklist,
+    write_plan,
+)
 from sac_ingest_wiki import ingest_dir  # noqa: E402
 from sac_ingest_tickets import ingest_tickets  # noqa: E402
 
@@ -407,6 +414,123 @@ class TestOrchestrate(unittest.TestCase):
             )
             self.assertTrue(result["validation"]["ok"] or result["graph"]["node_count"] > 0)
             self.assertGreater(result["graph"]["node_count"], 5)
+            self.assertIn("plan", result)
+            area_ids = {a["id"] for a in result["plan"]["focus_areas"]}
+            self.assertIn("packages", area_ids)
+            plan_md = Path(result["bundle"]) / ".sac" / "re-plan.md"
+            self.assertTrue(plan_md.is_file())
+            # Operational plan files are not OKF concepts
+            for p in iter_concepts(Path(result["bundle"])):
+                self.assertNotIn(".sac", p.parts)
+
+    def test_orchestrate_plan_only(self):
+        with tempfile.TemporaryDirectory() as td:
+            host = Path(td)
+            result = orchestrate(
+                host,
+                [FIXTURE],
+                system_name="Fixture System",
+                bundle_name="knowledge",
+                author=AUTHOR,
+                plan_only=True,
+            )
+            self.assertEqual(result["phases"], ["init-bundle", "plan"])
+            self.assertIsNone(result["materialize"])
+            self.assertEqual(result["graph"]["node_count"], 0)
+            areas = {a["id"] for a in result["plan"]["focus_areas"]}
+            for needed in ("packages", "containers", "iac", "k8s", "cicd", "identity"):
+                self.assertIn(needed, areas)
+            md = Path(result["bundle"]) / ".sac" / "re-plan.md"
+            text = md.read_text(encoding="utf-8")
+            self.assertIn("- [ ]", text)
+            self.assertIn("codebase-walker", text)
+            self.assertIn("iac-reverse-engineer", text)
+
+    def test_orchestrate_from_plan_area_scoped(self):
+        with tempfile.TemporaryDirectory() as td:
+            host = Path(td)
+            planned = orchestrate(
+                host,
+                [FIXTURE],
+                system_name="Fixture System",
+                bundle_name="knowledge",
+                author=AUTHOR,
+                plan_only=True,
+            )
+            plan_json = Path(planned["bundle"]) / ".sac" / "re-plan.json"
+            result = orchestrate(
+                host,
+                [FIXTURE],
+                system_name="Fixture System",
+                bundle_name="knowledge",
+                author=AUTHOR,
+                from_plan=plan_json,
+                area="packages",
+            )
+            self.assertIn("capture", result["phases"])
+            domains = (result["materialize"] or {}).get("domains") or []
+            self.assertEqual(domains, ["packages"])
+            pkgs = list((Path(result["bundle"]) / "packages").glob("*.md"))
+            pkgs = [p for p in pkgs if p.name != "index.md"]
+            self.assertGreater(len(pkgs), 0)
+
+
+class TestPlan(unittest.TestCase):
+    def test_plan_fixture_detects_domains_and_checklists(self):
+        plan = build_plan([FIXTURE], system_name="Fixture System")
+        self.assertEqual(plan["version"], "1")
+        self.assertEqual(plan["roots"][0]["layout"], "monorepo")
+        self.assertTrue({"npm", "maven"} <= set(plan["ecosystems"]))
+        area_ids = {a["id"] for a in plan["focus_areas"]}
+        for needed in ("packages", "containers", "iac", "k8s", "cicd", "identity", "network-iam"):
+            self.assertIn(needed, area_ids, area_ids)
+        ranked = [a["id"] for a in sorted(plan["focus_areas"], key=lambda x: x["rank"])]
+        self.assertEqual(ranked, [a["id"] for a in plan["focus_areas"]])
+        agents = {a["id"]: a["agent"] for a in plan["focus_areas"]}
+        self.assertEqual(agents["packages"], "codebase-walker")
+        self.assertEqual(agents["iac"], "iac-reverse-engineer")
+        self.assertEqual(agents["k8s"], "iac-reverse-engineer")
+        self.assertEqual(agents["network-iam"], "network-iam-topology")
+        self.assertEqual(agents["cicd"], "cicd-reverse-engineer")
+        self.assertEqual(agents["identity"], "identity-auth-discoverer")
+        for area in plan["focus_areas"]:
+            self.assertGreaterEqual(area["signal"], 1)
+            self.assertTrue(area["checklist"])
+            for item in area["checklist"]:
+                self.assertEqual(item["status"], "pending")
+                self.assertIn("id", item)
+                self.assertIn("text", item)
+
+    def test_plan_writes_and_mark_progress(self):
+        with tempfile.TemporaryDirectory() as td:
+            bundle = Path(td) / "knowledge"
+            bundle.mkdir()
+            written = write_plan(bundle, [FIXTURE], system_name="Fixture System")
+            md = bundle / ".sac" / "re-plan.md"
+            js = bundle / ".sac" / "re-plan.json"
+            self.assertTrue(md.is_file())
+            self.assertTrue(js.is_file())
+            text = md.read_text(encoding="utf-8")
+            self.assertIn("# Reverse-engineering plan: Fixture System", text)
+            self.assertIn("- [ ] `inventory`", text)
+            self.assertNotIn("- [x]", text)
+            self.assertIn("codebase-walker", text)
+            marked = mark_checklist(bundle, area="packages", item="inventory", status="done")
+            self.assertEqual(marked["checklist"]["done"], 1)
+            reloaded = load_plan(bundle)
+            pkg = next(a for a in reloaded["focus_areas"] if a["id"] == "packages")
+            inv = next(i for i in pkg["checklist"] if i["id"] == "inventory")
+            self.assertEqual(inv["status"], "done")
+            text2 = md.read_text(encoding="utf-8")
+            self.assertIn("- [x] `inventory`", text2)
+            blocked = mark_checklist(
+                bundle, area="packages", item="enrich", status="blocked", note="no owner in repo"
+            )
+            self.assertEqual(blocked["checklist"]["blocked"], 1)
+            text3 = md.read_text(encoding="utf-8")
+            self.assertIn("blocked", text3)
+            for p in iter_concepts(bundle):
+                self.assertNotIn(".sac", p.parts)
 
 
 class TestIngest(unittest.TestCase):

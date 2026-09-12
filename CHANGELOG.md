@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+## 0.5.6 — 2026-09-12
+
+### Added
+
+- Breadth-first reverse-engineering **plan** (`scripts/sac_plan.py`): repo map,
+  ecosystems, ranked focus areas, per-area deep-dive checklists, suggested
+  sub-agent assignment. Writes operational artifacts under the bundle
+  (`.sac/re-plan.md`, `.sac/re-plan.json`, `.sac/re-plan-progress.json`).
+- `sac_orchestrate.py --plan-only` and `--from-plan` / `--area` so hosts can
+  pause after the plan, then fan out domain-scoped scans instead of repeating
+  `full_scan` in every child. Unattended orchestrate still plans first, then
+  captures only domains the plan detected.
+- `sac_capture.py --domains` and `sac_materialize.py --domains` for scoped writes.
+- Skill `sac-plan` / command `/sac-plan`. architecture-orchestrator and
+  `sac-reverse-engineer` now teach plan → task list → parallel area walkers →
+  graph-builder. Query-time `architecture-retriever` / `sac-retrieve` stay
+  separate. Checklist items are marked `done` or `blocked` via `sac_plan.py mark`.
+
 ## 0.5.5 — 2026-09-12
 
 ### Added

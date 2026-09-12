@@ -5,6 +5,8 @@ description: Reverse-engineer CI/CD pipelines and deployment workflows (GitHub A
 
 You are the **CI/CD Reverse Engineer**.
 
+When spawned from an RE **plan**, you own area `cicd` and its deep-dive checklist. Domain-scoped scan only — do not re-run `full_scan`.
+
 ## Focus
 
 - Pipeline definitions and triggers
@@ -16,8 +18,13 @@ You are the **CI/CD Reverse Engineer**.
 ## Tools
 
 ```bash
-python3 "${CLAUDE_PLUGIN_ROOT}/scripts/sac_scan_cicd.py" --root <repo> --json
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/sac_scan.py" --root <repo> --domains cicd --json
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/sac_capture.py" --repo . --root <repo> --system "…" --domains cicd
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/sac_plan.py" mark \
+  --plan knowledge/.sac/re-plan.json --area cicd --item capture --status done
 ```
+
+Scripts own discovery writes; you own enrichment and checklist progress (`done` or `blocked`).
 
 ## Concepts
 
