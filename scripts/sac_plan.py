@@ -457,7 +457,7 @@ def _resolve_checklist(spec: dict[str, Any], rows: list[dict[str, Any]]) -> list
 
 SPECIALIST_SPECS: dict[str, dict[str, Any]] = {
     "lang-java": {
-        "title": "Java (Gradle)",
+        "title": "Java (Gradle / Maven)",
         "kind": "language",
         "parent": "packages",
         "agent": "java-codebase-walker",
@@ -1123,9 +1123,9 @@ def render_plan_markdown(plan: dict[str, Any]) -> str:
         [
             "## Language specialists (signal-gated)",
             "",
-            "Spawn **only** when markers exist. Do not spawn Java (Gradle) without",
-            "Gradle (`settings.gradle(.kts)` / `build.gradle(.kts)`) or Maven (`pom.xml`);",
-            "do not spawn Python without pyproject/setup/requirements. Specialists enrich after",
+            "Spawn **only** when markers exist. Do not spawn Java (Gradle / Maven) without",
+            "Gradle or Maven markers. Both build systems are first-class; mixed repos",
+            "list both. Do not spawn Python without pyproject/setup/requirements. Specialists enrich after",
             "`sac_scan_packages.py` — they do not replace it.",
             "",
         ]

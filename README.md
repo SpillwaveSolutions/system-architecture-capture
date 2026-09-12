@@ -289,7 +289,7 @@ python3 tests/test_sac.py
 | **architecture-orchestrator** | Lead RE pipeline: plan → area fan-out → graph |
 | **architecture-retriever** | Query-time retrieve; returns a card only (spawn-for-retrieve) |
 | **codebase-walker** | Packages, modules, service boundaries |
-| **java-codebase-walker** | Java (Gradle); also Maven when present; plan-gated |
+| **java-codebase-walker** | Java (Gradle / Maven), both first-class; plan-gated |
 | **typescript-codebase-walker** | JS/TS workspaces; plan-gated |
 | **python-codebase-walker** / **rust-codebase-walker** / **other-codebase-walker** | Language specialists; plan-gated |
 | **iac-reverse-engineer** | IaC inventory + K8s workloads |

@@ -533,7 +533,7 @@ class TestPlan(unittest.TestCase):
         for absent in ("lang-python", "lang-rust", "lang-other", "iac-cdk", "iac-pulumi", "iac-kustomize", "iac-cloudformation"):
             self.assertNotIn(absent, spec_ids)
         self.assertEqual(agents["lang-java"], "java-codebase-walker")
-        self.assertEqual(next(a for a in plan["focus_areas"] if a["id"] == "lang-java")["title"], "Java (Gradle)")
+        self.assertEqual(next(a for a in plan["focus_areas"] if a["id"] == "lang-java")["title"], "Java (Gradle / Maven)")
         self.assertEqual(agents["lang-typescript"], "typescript-codebase-walker")
         self.assertEqual(agents["iac-terraform"], "terraform-reverse-engineer")
         self.assertEqual(agents["iac-helm"], "helm-reverse-engineer")
@@ -563,7 +563,7 @@ class TestPlan(unittest.TestCase):
             self.assertIn("lang-java", g_ids)
             self.assertNotIn("lang-typescript", g_ids)
             g_java = next(a for a in gplan["focus_areas"] if a["id"] == "lang-java")
-            self.assertEqual(g_java["title"], "Java (Gradle)")
+            self.assertEqual(g_java["title"], "Java (Gradle / Maven)")
             self.assertIn("inventory-gradle", {i["id"] for i in g_java["checklist"]})
             self.assertNotIn("inventory-maven", {i["id"] for i in g_java["checklist"]})
 
@@ -576,10 +576,16 @@ class TestPlan(unittest.TestCase):
             (mixed / "build.gradle").write_text("apply plugin: 'java'\n", encoding="utf-8")
             mplan = build_plan([mixed], system_name="Mixed Java")
             m_java = next(a for a in mplan["focus_areas"] if a["id"] == "lang-java")
+            self.assertEqual(m_java["title"], "Java (Gradle / Maven)")
             m_items = {i["id"] for i in m_java["checklist"]}
             self.assertIn("inventory-gradle", m_items)
             self.assertIn("inventory-maven", m_items)
             self.assertIn("mixed", m_items)
+            # Both build systems are first-class peers in a mixed repo
+            self.assertLess(
+                [i["id"] for i in m_java["checklist"]].index("inventory-gradle"),
+                [i["id"] for i in m_java["checklist"]].index("inventory-maven"),
+            )
 
     def test_plan_does_not_spawn_absent_specialists(self):
         with tempfile.TemporaryDirectory() as td:

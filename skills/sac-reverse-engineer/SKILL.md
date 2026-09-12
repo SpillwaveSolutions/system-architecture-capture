@@ -44,7 +44,7 @@ Artifacts (operational, not OKF concepts):
 - `knowledge/.sac/re-plan.json` — same, machine-readable
 - `knowledge/.sac/re-plan-progress.json` — checklist status
 
-5. **Review the plan**, then **spawn from the assignment tables**: one child per domain area **and** one child per listed language/IaC specialist. Signal-gated — do not spawn Java (Gradle) without Gradle or Maven markers, or Terraform without `.tf`. Independent domains in parallel; specialists enrich after the deterministic scan for that ecosystem. Pass that area’s checklist and `scan_domains`.
+5. **Review the plan**, then **spawn from the assignment tables**: one child per domain area **and** one child per listed language/IaC specialist. Signal-gated — do not spawn Java (Gradle / Maven) unless Gradle or Maven markers exist (both first-class; mixed repos cover both), or Terraform without `.tf`. Independent domains in parallel; specialists enrich after the deterministic scan for that ecosystem. Pass that area’s checklist and `scan_domains`.
 6. Each child runs a **domain-scoped** scanner + capture (scripts own writes) and marks checklist items:
 
 ```bash

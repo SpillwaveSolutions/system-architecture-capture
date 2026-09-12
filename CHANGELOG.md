@@ -19,13 +19,14 @@
   `sac-reverse-engineer` now teach plan → task list → parallel area walkers →
   graph-builder. Query-time `architecture-retriever` / `sac-retrieve` stay
   separate. Checklist items are marked `done` or `blocked` via `sac_plan.py mark`.
-- Signal-gated **language specialists** (`java-codebase-walker` is **Java
-  (Gradle)**-first and also covers Maven when `pom.xml` is present; plus
-  TypeScript, Python, Rust, and `other-codebase-walker`) and **IaC specialists**
-  (Terraform, CDK, plus thin CloudFormation / Pulumi / Helm / Kustomize). The
-  plan lists who to spawn; no Java walker without Gradle or Maven markers, no
-  Terraform walker without `.tf`. Specialists enrich after the deterministic
-  scan — they do not replace `sac_scan_packages.py` / `sac_scan_iac.py`.
+- Signal-gated **language specialists** (`java-codebase-walker` treats **Gradle
+  and Maven as first-class** — spawn when either or both markers exist; mixed
+  repos list both build systems — plus TypeScript, Python, Rust, and
+  `other-codebase-walker`) and **IaC specialists** (Terraform, CDK, plus thin
+  CloudFormation / Pulumi / Helm / Kustomize). The plan lists who to spawn; no
+  Java walker without Gradle or Maven markers, no Terraform walker without
+  `.tf`. Specialists enrich after the deterministic scan — they do not replace
+  `sac_scan_packages.py` / `sac_scan_iac.py`.
 
 ## 0.5.5 — 2026-09-12
 
