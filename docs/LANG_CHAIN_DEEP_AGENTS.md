@@ -72,9 +72,14 @@ python3 scripts/sac_blast_radius.py services/example.md --bundle "${SECOND_BRAIN
 
 Wrap the scripts as tools or shell. The model proposes. The scripts scan, pack, blast-radius, and validate.
 
+For query-time topology, spawn a child as `architecture-retriever` (skill
+`sac-retrieve`) and consume the retrieval card only. Do not run `sac_search.py`
+or `sac_pack.py` in the parent agent.
+
 ## Progressive disclosure
 
 Startup sees skill frontmatter only. Pack (2 hops) before answering or writing.
+`--summary` on `sac_pack.py` is the compact card-friendly stdout.
 
 ## Related
 

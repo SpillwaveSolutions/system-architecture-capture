@@ -3,12 +3,14 @@
 
 from __future__ import annotations
 
+import io
 import json
 import os
 import shutil
 import sys
 import tempfile
 import unittest
+from contextlib import redirect_stdout
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -38,7 +40,14 @@ from sac_graph import load_graph, mermaid  # noqa: E402
 from sac_blast_radius import blast_radius  # noqa: E402
 from sac_validate import validate_bundle  # noqa: E402
 from sac_search import search  # noqa: E402
-from sac_pack import PackBudgetError, finalize_markdown, main as pack_main, pack  # noqa: E402
+from sac_pack import (  # noqa: E402
+    PackBudgetError,
+    finalize_markdown,
+    finalize_summary,
+    main as pack_main,
+    pack,
+    render_summary,
+)
 from sac_orchestrate import orchestrate  # noqa: E402
 from sac_ingest_wiki import ingest_dir  # noqa: E402
 from sac_ingest_tickets import ingest_tickets  # noqa: E402
@@ -127,6 +136,7 @@ class TestSampleKnowledge(unittest.TestCase):
         p = pack(SAMPLE, "services/order-service.md", hops=2)
         self.assertGreaterEqual(p["node_count"], 3)
         self.assertIn("flowchart", p["mermaid"])
+        self.assertGreaterEqual(len(p.get("edges") or []), 1)
         md, meta = finalize_markdown(p)
         self.assertEqual(meta["window"], 128000)
         self.assertEqual(meta["budget"], 32000)
@@ -135,6 +145,22 @@ class TestSampleKnowledge(unittest.TestCase):
         for c in p["concepts"]:
             if c.get("path") != p["start"]:
                 self.assertFalse((c.get("body") or "").strip())
+
+    def test_sample_pack_summary(self):
+        p = pack(SAMPLE, "services/order-service.md", hops=2)
+        text, meta = finalize_summary(p)
+        self.assertLessEqual(meta["tokens"], meta["budget"])
+        self.assertIn("Pack summary:", text)
+        self.assertIn("/services/order-service.md", text)
+        self.assertIn("hops=2", text)
+        self.assertRegex(text, r"Engine: (rg|scan)")
+        self.assertNotIn("```mermaid", text)
+        self.assertNotIn("flowchart", text)
+        self.assertNotIn("# Order Service", text)
+        for c in p["concepts"]:
+            body = (c.get("body") or "").strip()
+            if body:
+                self.assertNotIn(body.split("\n", 1)[0], text)
 
     def test_blast_radius(self):
         g = load_graph(SAMPLE)
@@ -213,6 +239,157 @@ class TestPackTokenBudget(unittest.TestCase):
             self.assertFalse(out.exists())
         finally:
             shutil.rmtree(tmp)
+
+    def test_summary_bodies_off_including_root(self):
+        tmp = Path(tempfile.mkdtemp())
+        try:
+            services = tmp / "services"
+            services.mkdir()
+            (tmp / "index.md").write_text(
+                '---\nokf_version: "0.2"\ntitle: t\n---\n', encoding="utf-8"
+            )
+            (services / "root.md").write_text(
+                "---\ntype: Service\ntitle: Lumenfield Root\n"
+                "description: root-frontmatter-only\n"
+                "links:\n  - target: /services/neighbor.md\n    rel: calls\n"
+                "---\n# Lumenfield Root\n\nROOT_BODY_MARKER secret-of-root\n",
+                encoding="utf-8",
+            )
+            (services / "neighbor.md").write_text(
+                "---\ntype: Service\ntitle: Neighbor\n"
+                "description: neighbor-frontmatter-only\n---\n"
+                "# Neighbor\n\nNEIGHBOR_BODY_MARKER must-not-pack\n",
+                encoding="utf-8",
+            )
+            result = pack(tmp, "services/root.md", hops=1, max_nodes=8)
+            text = render_summary(result, tokens=12, budget=32000)
+            self.assertIn("Lumenfield Root", text)
+            self.assertIn("root-frontmatter-only", text)
+            self.assertIn("neighbor-frontmatter-only", text)
+            self.assertIn("`/services/root.md`", text)
+            self.assertIn("—[calls]→", text)
+            self.assertNotIn("ROOT_BODY_MARKER", text)
+            self.assertNotIn("NEIGHBOR_BODY_MARKER", text)
+            self.assertNotIn("```mermaid", text)
+            self.assertIn("tokens=12/32000", text)
+        finally:
+            shutil.rmtree(tmp)
+
+    def test_summary_over_budget_fails_closed(self):
+        tmp = Path(tempfile.mkdtemp())
+        try:
+            services = tmp / "services"
+            services.mkdir()
+            (tmp / "index.md").write_text(
+                '---\nokf_version: "0.2"\ntitle: t\n---\n', encoding="utf-8"
+            )
+            (services / "root.md").write_text(
+                "---\ntype: Service\ntitle: Lumenfield Root\n"
+                "description: compact-summary-seed\n---\n# Root\n",
+                encoding="utf-8",
+            )
+            result = pack(tmp, "services/root.md", hops=0, max_nodes=1)
+            with self.assertRaises(PackBudgetError) as ctx:
+                finalize_summary(result, max_tokens=8)
+            self.assertGreater(ctx.exception.tokens, ctx.exception.budget)
+            self.assertEqual(ctx.exception.budget, 8)
+            out = tmp / "should-not-exist.md"
+            rc = pack_main(
+                [
+                    "services/root.md",
+                    "--repo",
+                    str(tmp),
+                    "--bundle",
+                    str(tmp),
+                    "--max-nodes",
+                    "1",
+                    "--hops",
+                    "0",
+                    "--max-tokens",
+                    "8",
+                    "--summary",
+                    "--write",
+                    str(out),
+                    "--json",
+                ]
+            )
+            self.assertNotEqual(rc, 0)
+            self.assertFalse(out.exists())
+        finally:
+            shutil.rmtree(tmp)
+
+    def test_summary_json_strips_bodies_and_mermaid(self):
+        tmp = Path(tempfile.mkdtemp())
+        try:
+            services = tmp / "services"
+            services.mkdir()
+            (tmp / "index.md").write_text(
+                '---\nokf_version: "0.2"\ntitle: t\n---\n', encoding="utf-8"
+            )
+            (services / "root.md").write_text(
+                "---\ntype: Service\ntitle: Lumenfield Root\n"
+                "description: json-summary-seed\n---\n"
+                "# Lumenfield Root\n\nROOT_BODY_MARKER keep-off\n",
+                encoding="utf-8",
+            )
+            buf = io.StringIO()
+            with redirect_stdout(buf):
+                rc = pack_main(
+                    [
+                        "services/root.md",
+                        "--repo",
+                        str(tmp),
+                        "--bundle",
+                        str(tmp),
+                        "--tiny",
+                        "--summary",
+                        "--json",
+                    ]
+                )
+            self.assertEqual(rc, 0)
+            data = json.loads(buf.getvalue())
+            self.assertIn("Pack summary:", data.get("summary") or "")
+            self.assertEqual(data.get("mermaid"), "")
+            for c in data.get("concepts") or []:
+                self.assertFalse((c.get("body") or "").strip())
+            self.assertTrue(data.get("edges") == [] or isinstance(data.get("edges"), list))
+        finally:
+            shutil.rmtree(tmp)
+
+    def test_summary_rejects_mermaid_combo(self):
+        rc = pack_main(
+            [
+                "services/order-service.md",
+                "--repo",
+                str(SAMPLE),
+                "--bundle",
+                str(SAMPLE),
+                "--summary",
+                "--mermaid",
+            ]
+        )
+        self.assertEqual(rc, 2)
+
+    def test_summary_cli_sample(self):
+        buf = io.StringIO()
+        with redirect_stdout(buf):
+            rc = pack_main(
+                [
+                    "services/order-service.md",
+                    "--repo",
+                    str(SAMPLE),
+                    "--bundle",
+                    str(SAMPLE),
+                    "--tiny",
+                    "--summary",
+                ]
+            )
+        text = buf.getvalue()
+        self.assertEqual(rc, 0)
+        self.assertIn("# Pack summary:", text)
+        self.assertIn("Pack: hops=1", text)
+        self.assertNotIn("```mermaid", text)
+        self.assertNotIn("ROOT_BODY_MARKER", text)
 
 
 class TestOrchestrate(unittest.TestCase):

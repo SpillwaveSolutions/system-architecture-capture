@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Progressive disclosure context packs from SAC graph.
 
-Bodies off unless that node is the pack root. Token budget is fail-closed
-(default 1/4 of SECOND_BRAIN_WINDOW_TOKENS). Node clip is not a token budget.
+Bodies off unless that node is the pack root (and always off for `--summary`).
+Token budget is fail-closed (default 1/4 of SECOND_BRAIN_WINDOW_TOKENS). Node
+clip is not a token budget. `--summary` prints a compact card-friendly view.
 
 Inbound/backlink discovery: ripgrep prefilter → full scan. Outbound is always
 parsed from the current file. Ranking/graph identity matches a full scan.
@@ -328,6 +329,7 @@ def pack(
         "max_nodes": max_nodes,
         "node_count": len(concepts),
         "concepts": concepts,
+        "edges": sub["edges"],
         "mermaid": mermaid(sub, max_nodes=max_nodes),
         "reverse_index": inbound.engine,
         "excluded_note": (
@@ -381,6 +383,80 @@ def render_markdown(
     return "\n".join(lines)
 
 
+def _one_line(text: object) -> str:
+    return " ".join(str(text or "").split())
+
+
+def render_summary(
+    pack_data: dict,
+    *,
+    tokens: int | None = None,
+    budget: int | None = None,
+    max_leads: int = 8,
+    max_edges: int = 5,
+) -> str:
+    """Compact card-friendly stdout. Bodies off. No mermaid."""
+    start = pack_data["start"]
+    concepts = [c for c in pack_data.get("concepts") or [] if not c.get("missing")]
+    seed = next((c for c in concepts if c.get("path") == start), {})
+    seed_type = seed.get("type") or "Concept"
+    token_bit = ""
+    if tokens is not None and budget is not None:
+        token_bit = f" tokens={tokens}/{budget}"
+    lines = [
+        f"# Pack summary: `{start}` (`{seed_type}`)",
+        "",
+        f"- Engine: {pack_data.get('reverse_index') or 'scan'}",
+        f"- Pack: hops={pack_data['hops']} nodes={pack_data['node_count']}{token_bit}",
+        "",
+        "## Lead nodes",
+        "",
+    ]
+    leads = concepts[:max_leads]
+    if not leads:
+        lines.append("- none")
+    else:
+        for c in leads:
+            why = _one_line(c.get("description")) or (c.get("type") or "related")
+            lines.append(
+                f"- {c.get('title')} · {c.get('type')} · `{c.get('path')}` · {why}"
+            )
+    lines.append("")
+    lines.append("## Critical edges")
+    lines.append("")
+    edges = pack_data.get("edges") or []
+    if not edges:
+        lines.append("- none")
+    else:
+        for e in edges[:max_edges]:
+            lines.append(f"- `{e.get('from')}` —[{e.get('rel')}]→ `{e.get('to')}`")
+    lines.append("")
+    return "\n".join(lines)
+
+
+def finalize_summary(
+    pack_data: dict,
+    *,
+    max_tokens: str | int | None = None,
+    window_tokens: str | int | None = None,
+) -> tuple[str, dict[str, int]]:
+    """Render the compact summary and fail closed if it exceeds the token budget.
+
+    Bodies stay off for every node, including the pack root.
+    """
+    window, budget = resolve_pack_budget(max_tokens, window_tokens)
+    draft = render_summary(pack_data, tokens=0, budget=budget)
+    tokens = estimate_tokens(draft)
+    text = render_summary(pack_data, tokens=tokens, budget=budget)
+    tokens = estimate_tokens(text)
+    meta = {"tokens": tokens, "budget": budget, "window": window}
+    if tokens > budget:
+        raise PackBudgetError(
+            tokens, budget, window, [c.get("path", "") for c in pack_data["concepts"]]
+        )
+    return text, meta
+
+
 def finalize_markdown(
     pack_data: dict,
     *,
@@ -415,6 +491,11 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--window-tokens", default="")
     p.add_argument("--tiny", action="store_true")
     p.add_argument("--mermaid", action="store_true")
+    p.add_argument(
+        "--summary",
+        action="store_true",
+        help="Compact card-friendly stdout (bodies off, no mermaid)",
+    )
     p.add_argument("--json", action="store_true")
     p.add_argument("--write", default=None, help="Directory or file to write pack markdown")
     p.add_argument(
@@ -430,6 +511,9 @@ def main(argv: list[str] | None = None) -> int:
     args = p.parse_args(argv)
     if args.rg and args.no_rg:
         print("error: --rg and --no-rg are mutually exclusive", file=sys.stderr)
+        return 2
+    if args.mermaid and args.summary:
+        print("error: --mermaid and --summary are mutually exclusive", file=sys.stderr)
         return 2
     use_rg: bool | None
     if args.no_rg:
@@ -463,9 +547,14 @@ def main(argv: list[str] | None = None) -> int:
                 )
             print(data["mermaid"])
             return 0
-        md, meta = finalize_markdown(
-            data, max_tokens=args.max_tokens, window_tokens=args.window_tokens
-        )
+        if args.summary:
+            md, meta = finalize_summary(
+                data, max_tokens=args.max_tokens, window_tokens=args.window_tokens
+            )
+        else:
+            md, meta = finalize_markdown(
+                data, max_tokens=args.max_tokens, window_tokens=args.window_tokens
+            )
     except PackBudgetError as exc:
         payload = {
             "error": "pack exceeds token budget",
@@ -485,13 +574,19 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
     data.update(meta)
+    if args.summary:
+        data["summary"] = md
+        for c in data.get("concepts") or []:
+            c["body"] = ""
+        data["mermaid"] = ""
 
     if args.write:
         out = Path(args.write)
         if out.is_dir() or str(args.write).endswith("/"):
             out.mkdir(parents=True, exist_ok=True)
             slug = Path(str(data["start"])).stem + ("-tiny" if args.tiny else "")
-            out = out / f"{slug}-pack.md"
+            suffix = "summary" if args.summary else "pack"
+            out = out / f"{slug}-{suffix}.md"
         else:
             out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(md, encoding="utf-8")

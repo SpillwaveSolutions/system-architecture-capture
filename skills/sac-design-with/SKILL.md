@@ -27,20 +27,16 @@ it as the default context when proposing:
 2. **Name the design intent**  
    One sentence: *what* is new and *where* it attaches (domain, client, backend).
 
-3. **Pull a context pack** (deterministic first):
+3. **Retrieve a context card** (do not run search/pack in this parent):
 
-```bash
-# Neighborhood around a related service or system
-python3 "${CLAUDE_PLUGIN_ROOT}/scripts/sac_pack.py" --bundle knowledge \
-  --focus services/<related-service>.md --hops 2
+   Spawn **`architecture-retriever`** via skill `sac-retrieve`. Pass the design
+   intent as the query, an optional seed service/API path, and the bundle.
+   Consume **only** the retrieval card. If the card says `deepen-2hop` or
+   `blast-radius`, spawn the retriever again — do not run `sac_pack.py` /
+   `sac_search.py` / `sac_blast_radius.py` here.
 
-# Blast radius of changing an existing service/API
-python3 "${CLAUDE_PLUGIN_ROOT}/scripts/sac_blast_radius.py" --bundle knowledge \
-  --from services/<existing>.md --depth 3
-
-# Search by domain terms
-python3 "${CLAUDE_PLUGIN_ROOT}/scripts/sac_search.py" --bundle knowledge "<domain keywords>"
-```
+   Project-memory (meetings, decisions, features) is an orthogonal fan-out to
+   PKC `knowledge-retriever`.
 
 4. **Answer before inventing** (use pack + concepts):
    - Which **System / Service / Package** already owns this domain?

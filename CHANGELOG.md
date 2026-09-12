@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+## 0.5.5 — 2026-09-12
+
+### Added
+
+- Query-time **`architecture-retriever`** sub-agent and **`sac-retrieve`** skill.
+  Search, scoring, pack/blast-radius, and deepen stay in the child. The parent
+  spawns the retriever and consumes a retrieval card only — not hit lists or
+  full pack markdown. Orthogonal fan-out to PKC `knowledge-retriever` for
+  project-memory.
+- `sac_pack.py --summary`: compact card-friendly stdout (bodies off, no mermaid),
+  same fail-closed token budget as the full pack. JSON includes `edges` so the
+  child can build the card without pasting mermaid.
+
 ## 0.5.4 — 2026-08-31
 
 ### Fixed

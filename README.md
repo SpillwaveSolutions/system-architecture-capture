@@ -11,7 +11,7 @@ Works on **Claude Code**, **Grok Build**, **Codex**, **Cursor**, **OpenCode**, *
 | | |
 |---|---|
 | **Plugin name** | `system-architecture-capture` |
-| **Version** | 0.5.4 |
+| **Version** | 0.5.5 |
 | **License** | MIT |
 | **Depends on** | [PKC](https://github.com/SpillwaveSolutions/project-knowledge-capture) · [OKF](https://github.com/SpillwaveSolutions/okf-plugin) |
 
@@ -263,6 +263,7 @@ Or slash command / skill: **`/sac-reverse-engineer`**
 ```bash
 python3 scripts/sac_validate.py --bundle sample-knowledge
 python3 scripts/sac_pack.py services/order-service.md --bundle sample-knowledge --hops 2
+python3 scripts/sac_pack.py services/order-service.md --bundle sample-knowledge --tiny --summary
 python3 scripts/sac_blast_radius.py services/order-service.md --bundle sample-knowledge --hops 3
 python3 tests/test_sac.py
 ```
@@ -272,6 +273,7 @@ python3 tests/test_sac.py
 | Agent | Role |
 |-------|------|
 | **architecture-orchestrator** | Lead RE pipeline across repos |
+| **architecture-retriever** | Query-time retrieve; returns a card only (spawn-for-retrieve) |
 | **codebase-walker** | Packages, modules, service boundaries |
 | **iac-reverse-engineer** | CFN / TF / CDK / Pulumi / Helm / Kustomize / K8s |
 | **network-iam-topology** | VPC, SG, LB, mesh, IAM |
@@ -290,7 +292,8 @@ python3 tests/test_sac.py
 | `sac-capture` | Scan → OKF concepts |
 | `sac-graph` | Dependency graph / Mermaid |
 | `sac-blast-radius` | Impact analysis |
-| `sac-pack` | Progressive disclosure packs |
+| `sac-pack` | Progressive disclosure packs (`--summary` for card-friendly stdout) |
+| `sac-retrieve` | Spawn `architecture-retriever`; parent consumes the card only |
 | `sac-session` | Open / close isolated write session (worktree + PR) |
 | `sac-search` | Full-text search |
 | `sac-doctor` | Bundle health |
