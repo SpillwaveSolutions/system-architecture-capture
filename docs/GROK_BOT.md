@@ -62,6 +62,15 @@ Default ContextPack: **2 hops / ~20 nodes**.
 
 Pack or blast-radius before answering or writing. Do not dump the entire topology.
 
+### Query-time child Task
+
+Do **not** run `sac_search.py` / `sac_pack.py` / `sac_blast_radius.py` in the
+parent for topology context. Spawn a child Task as **`architecture-retriever`**
+(skill `sac-retrieve`). Pass query, optional seed, and bundle. Consume **only**
+the retrieval card — never full hits, mermaid, or pack bodies. `--summary` on
+`sac_pack.py` is the child's compact stdout. Project-memory is an orthogonal
+fan-out to PKC `knowledge-retriever`.
+
 ## Skill binding
 
 Grok Bot does not run `/plugin marketplace add`. Enable the relevant skills from this repo (`skills/*/SKILL.md`). Set identity and knowledge root. Report path + validation result, not a dumped graph.

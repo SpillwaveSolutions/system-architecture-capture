@@ -9,5 +9,5 @@ Follow `docs/CURSOR.md` and `docs/GROK_BOT.md`.
 
 1. Identity: `grok-bot/system-architecture-capture` (or the operator-registered actor for this role).
 2. Local Cursor may `/plugin install system-architecture-capture` from the Spillwave marketplace.
-3. Cloud Cursor on a knowledge tree: pack first, write only via pack scripts, isolate with `brain_session.py`.
+3. Cloud Cursor on a knowledge tree: spawn `architecture-retriever` for topology context (card only), write only via pack scripts, isolate with `brain_session.py`.
 4. Never document a private remote. Never write raw Markdown into the tree.

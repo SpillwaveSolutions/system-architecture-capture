@@ -6,7 +6,7 @@ alwaysApply: true
 You are reading and writing a shared OKF second brain.
 
 1. Claim an identity first (`SECOND_BRAIN_IDENTITY` or `--author`). Anonymous writes are forbidden.
-2. Pack first (2 hops, token budget). Do not dump the tree into chat.
+2. Pack first (2 hops, token budget). For topology questions spawn `architecture-retriever` and consume the card only. Do not dump the tree into chat.
 3. Writes go through the pack scripts only. Never write raw Markdown into `knowledge/`.
 4. Isolate: `python3 scripts/brain_session.py open` then write then `close` (PR). Do not commit on `main`.
 5. Pack roots (`--root /clients/<slug>.md`) are packing hints, not access control.

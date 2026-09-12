@@ -41,7 +41,7 @@ vendored there. It does **not** see your local Claude or Grok plugin cache.
 Do this:
 
 1. Claim identity (`SECOND_BRAIN_IDENTITY` or `--author`).
-2. Pack first (2 hops). Do not dump the tree.
+2. Spawn `architecture-retriever` for topology (card only). Do not dump the tree.
 3. Write only through the pack script. No raw Markdown into `knowledge/`.
 4. Isolate: `brain_session.py open` → write → `close` (PR).
 5. Never invent a private remote.

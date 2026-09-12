@@ -39,7 +39,7 @@ See [GROK_BOT.md](GROK_BOT.md) for the binding contract.
 
 1. State your identity: `Grok Bot: System Architecture Capture`.
 2. Confirm the knowledge root (`SECOND_BRAIN_ROOT` or the target bundle).
-3. Pack or blast-radius the relevant subgraph (2 hops) before answering or writing.
+3. Spawn `architecture-retriever` for topology context (retrieval card only). Do not dump search hits or full packs into the parent.
 4. Persist only through skills + deterministic scripts inside an isolation session when writing a shared brain.
 5. Report path + validation result, not a dumped graph.
 

@@ -20,4 +20,4 @@ export SECOND_BRAIN_IDENTITY="deep-agents/system-architecture-capture"
 export SECOND_BRAIN_ROOT="${SECOND_BRAIN_ROOT:-knowledge}"
 ```
 
-Open an isolation session before writing a shared institutional tree. Prefer `scripts/sac_*.py` for deterministic scan / pack / blast-radius / validate.
+Open an isolation session before writing a shared institutional tree. Prefer `scripts/sac_*.py` for deterministic scan / pack / blast-radius / validate. For query-time topology, spawn `architecture-retriever` and consume the retrieval card only — do not run search/pack in the parent.

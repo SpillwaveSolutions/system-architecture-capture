@@ -70,6 +70,19 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/sac_pack.py" services/<slug>.md --repo . 
 | `wiki-ticket-ingester` | Confluence/Notion/wiki + Jira/Linear/ADO/GitHub Issues |
 | `graph-builder` | dependency graph, data/control flow, blast radius, packs |
 
+## Query-time (spawn-for-retrieve)
+
+These are **not** reverse-engineering walkers. Do not run `sac_search.py` /
+`sac_pack.py` / `sac_blast_radius.py` in this parent for topology context.
+
+| Sub-agent | Owns |
+|-----------|------|
+| `architecture-retriever` | Query-time retrieve: search, score fit, pack or blast-radius, optional deepen. Returns a retrieval card only. |
+
+Spawn `architecture-retriever` (skill `sac-retrieve`). Pass query, optional seed,
+and bundle. Consume **only** the card — never full hit lists or pack markdown.
+Project-memory stays on PKC `knowledge-retriever` (orthogonal fan-out).
+
 ## Workflow
 
 1. **Init** knowledge bundle (SAC catalogs include PKC ones).

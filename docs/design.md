@@ -66,7 +66,8 @@ SAC is dual-mode:
 
 1. **Build** the second brain (orchestrator + scanners + ingest).
 2. **Use** it when designing new features, services, APIs, mobile/web apps, or infra
-   via `sac-design-with` / `sac_pack` / `sac_blast_radius` / `sac_search`.
+   via `sac-design-with` → spawn `architecture-retriever` (`sac-retrieve`). The
+   parent consumes the retrieval card only.
 
 Design recommendations must cite existing concepts and edges; inventing a new
 service without checking the graph is a process failure.

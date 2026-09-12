@@ -18,13 +18,15 @@ Write isolation: `docs/ISOLATION.md`. Open `/sac-session` before writing a share
 
 ## Entry points
 
-- Agent: `architecture-orchestrator`
-- Skill: `sac-reverse-engineer`
+- Agent: `architecture-orchestrator` (capture) · `architecture-retriever` (query-time)
+- Skill: `sac-reverse-engineer` · `sac-retrieve`
 - CLI: `python3 scripts/sac_orchestrate.py --scan-root <repo> --system "Name"`
 
 ## Sub-agents
 
-codebase-walker · iac-reverse-engineer · network-iam-topology · cicd-reverse-engineer · identity-auth-discoverer · wiki-ticket-ingester · graph-builder
+Reverse-engineer: codebase-walker · iac-reverse-engineer · network-iam-topology · cicd-reverse-engineer · identity-auth-discoverer · wiki-ticket-ingester · graph-builder
+
+Query-time: **architecture-retriever** — spawn-for-retrieve. Parent does not run `sac_search` / `sac_pack` / `sac_blast_radius`. Consume the retrieval card only.
 
 ## Invariants
 
@@ -42,4 +44,4 @@ bash tools/ci-local.sh
 
 External systems (wiki, tickets, cloud APIs, IdP admin) are reached via host **skills/MCPs**. SAC normalizes exports and scans git trees — it does not re-implement every provider.
 
-When designing new features/services/APIs/apps against a captured estate, use skill `sac-design-with` (load pack + blast radius first).
+When designing new features/services/APIs/apps against a captured estate, use skill `sac-design-with` (spawn `architecture-retriever` / `sac-retrieve` first; consume the card only).

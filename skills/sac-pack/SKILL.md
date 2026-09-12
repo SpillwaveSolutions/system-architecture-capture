@@ -12,6 +12,11 @@ scan. Same graph either way. `--no-rg` forces the scan.
 ```bash
 python3 "${CLAUDE_PLUGIN_ROOT}/scripts/sac_pack.py" services/order-service.md --repo . --hops 2
 python3 "${CLAUDE_PLUGIN_ROOT}/scripts/sac_pack.py" services/order-service.md --repo . --tiny
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/sac_pack.py" services/order-service.md --repo . --tiny --summary
 python3 "${CLAUDE_PLUGIN_ROOT}/scripts/sac_pack.py" services/order-service.md --repo . --mermaid
 python3 "${CLAUDE_PLUGIN_ROOT}/scripts/sac_pack.py" services/order-service.md --repo . --no-rg --json
 ```
+
+`--summary` is compact card-friendly stdout (bodies off, no mermaid), fail-closed
+on the same token budget. For parent topology questions, spawn
+`architecture-retriever` (`sac-retrieve`) instead of running this in the parent.
