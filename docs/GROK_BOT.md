@@ -44,11 +44,15 @@ The model proposes structure. Scripts scan, capture, and materialize Markdown + 
 
 ```bash
 python3 scripts/sac_scan.py --help
-python3 scripts/sac_capture.py --bundle "${SECOND_BRAIN_ROOT}" --author "${SECOND_BRAIN_IDENTITY}"
+python3 scripts/sac_plan.py --bundle "${SECOND_BRAIN_ROOT}" --system "Name" --scan-root . --write
+python3 scripts/sac_orchestrate.py --bundle "${SECOND_BRAIN_ROOT}" --system "Name" --scan-root . --plan-only --author "${SECOND_BRAIN_IDENTITY}"
+python3 scripts/sac_capture.py --bundle "${SECOND_BRAIN_ROOT}" --author "${SECOND_BRAIN_IDENTITY}" --domains packages
 python3 scripts/sac_pack.py services/example.md --bundle "${SECOND_BRAIN_ROOT}" --hops 2
 python3 scripts/sac_validate.py --bundle "${SECOND_BRAIN_ROOT}" --schema
 python3 scripts/sac_blast_radius.py services/example.md --bundle "${SECOND_BRAIN_ROOT}"
 ```
+
+Reverse-engineering is **plan → task list → area walker fan-out**, not a jump to `full_scan`. Query-time retrieve stays on `architecture-retriever`.
 
 Writes fail closed without `--author` or `SECOND_BRAIN_IDENTITY`. Successful knowledge writes stamp `author` and emit a `WriteEvent`.
 

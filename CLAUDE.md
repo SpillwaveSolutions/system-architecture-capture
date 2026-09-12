@@ -30,7 +30,8 @@ bash tools/ci-local.sh
 
 - `sample-knowledge/` is the golden fixture.
 - Scanners: `scripts/sac_scan_*.py`
-- Orchestrator: `scripts/sac_orchestrate.py`
+- Orchestrator: `scripts/sac_orchestrate.py` (plan → scoped capture)
+- Plan: `scripts/sac_plan.py`
 
 ## Provider connectivity
 

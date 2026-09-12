@@ -581,6 +581,11 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--system", default="System")
     p.add_argument("--json", action="store_true")
     p.add_argument("--scan-json", default=None, help="Use precomputed scan JSON file")
+    p.add_argument(
+        "--domains",
+        default=None,
+        help="Comma-separated scan domains when not using --scan-json (skip full_scan)",
+    )
     p.add_argument("--author", default="")
     args = p.parse_args(argv)
     from sac_common import resolve_author
@@ -592,7 +597,8 @@ def main(argv: list[str] | None = None) -> int:
     if args.scan_json:
         scan = json.loads(Path(args.scan_json).read_text(encoding="utf-8"))
     else:
-        scan = full_scan(code_root)
+        domains = [d.strip() for d in (args.domains or "").split(",") if d.strip()] or None
+        scan = full_scan(code_root, domains=domains)
     stats = capture_scan(bundle, scan, system_name=args.system, author=author)
     if args.json:
         print(json.dumps({"bundle": str(bundle), "stats": stats, "summary": scan.get("summary")}, indent=2))

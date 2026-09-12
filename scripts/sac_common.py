@@ -1223,6 +1223,8 @@ def iter_concepts(bundle: Path) -> list[Path]:
             continue
         if "packs" in p.parts:
             continue
+        if ".sac" in p.parts:
+            continue
         files.append(p)
     return files
 

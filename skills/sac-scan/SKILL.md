@@ -10,6 +10,8 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/sac_scan.py" --root <path> --json
 python3 "${CLAUDE_PLUGIN_ROOT}/scripts/sac_scan.py" --root <path> --domains packages,iac,cicd --json
 ```
 
+For a cheap **breadth-first map** (presence/counts, ranked focus areas, checklists) before choosing domains, use skill `sac-plan` / `scripts/sac_plan.py`. Area walkers should pass the plan’s `scan_domains` here instead of repeating `full_scan`.
+
 Individual scanners: `sac_scan_packages.py`, `sac_scan_containers.py`, `sac_scan_iac.py`, `sac_scan_k8s.py`, `sac_scan_cicd.py`, `sac_scan_identity.py`.
 
 Default scan domains include `diagrams` (Mermaid/PlantUML) and `code` (Module/Class/Method/Function).

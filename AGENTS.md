@@ -20,11 +20,12 @@ Write isolation: `docs/ISOLATION.md`. Open `/sac-session` before writing a share
 
 - Agent: `architecture-orchestrator` (capture) · `architecture-retriever` (query-time)
 - Skill: `sac-reverse-engineer` · `sac-retrieve`
-- CLI: `python3 scripts/sac_orchestrate.py --scan-root <repo> --system "Name"`
+- CLI: `python3 scripts/sac_orchestrate.py --scan-root <repo> --system "Name"` (plans first)
+- Plan only: `python3 scripts/sac_orchestrate.py --plan-only --scan-root <repo> --system "Name"`
 
 ## Sub-agents
 
-Reverse-engineer: codebase-walker · iac-reverse-engineer · network-iam-topology · cicd-reverse-engineer · identity-auth-discoverer · wiki-ticket-ingester · graph-builder
+Reverse-engineer: **plan** (`sac_plan.py`) then fan-out — domain walkers (codebase-walker · iac-reverse-engineer · network-iam-topology · cicd-reverse-engineer · identity-auth-discoverer) plus **signal-gated specialists** (Java (Gradle / Maven) / typescript / python / rust / other language walkers; terraform / cdk / helm / kustomize / cfn / pulumi). wiki-ticket-ingester · graph-builder (join after children). Do not spawn a specialist the plan did not list.
 
 Query-time: **architecture-retriever** — spawn-for-retrieve. Parent does not run `sac_search` / `sac_pack` / `sac_blast_radius`. Consume the retrieval card only.
 

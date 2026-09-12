@@ -26,7 +26,7 @@ PKC owns product memory (Meeting, Feature, DecisionRecord, ...). okf-plugin / AG
 
 ## Non-negotiable rules
 
-1. **Deterministic architecture ops.** Prefer `scripts/sac_*.py` for scan, pack, validate, blast-radius, capture.
+1. **Deterministic architecture ops.** Prefer `scripts/sac_*.py` for plan, scan, pack, validate, blast-radius, capture. Reverse-engineering is breadth-first plan → focus task list → area walker fan-out (not an immediate `full_scan`). Query-time retrieve is a different path (`architecture-retriever`).
 2. **Identity.** Claim `grok-bot/system-architecture-capture` via `SECOND_BRAIN_IDENTITY`. Chat prefix: `Grok Bot: System Architecture Capture`.
 3. **Progressive disclosure.** Default ContextPack is 2 hops. Pack before answering or writing.
 4. **Isolation.** Open a session worktree before writing a shared brain. Close it to PR. Never force-push. Never invent a remote URL. See [ISOLATION.md](ISOLATION.md).

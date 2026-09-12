@@ -11,7 +11,7 @@ Works on **Claude Code**, **Grok Build**, **Codex**, **Cursor**, **OpenCode**, *
 | | |
 |---|---|
 | **Plugin name** | `system-architecture-capture` |
-| **Version** | 0.5.5 |
+| **Version** | 0.5.6 |
 | **License** | MIT |
 | **Depends on** | [PKC](https://github.com/SpillwaveSolutions/project-knowledge-capture) · [OKF](https://github.com/SpillwaveSolutions/okf-plugin) |
 
@@ -173,7 +173,7 @@ Also reverse-engineer **Module**, **Class**, **Method**, and **Function** (build
 ```bash
 python3 scripts/sac_scan_diagrams.py --root .
 python3 scripts/sac_scan_code_structure.py --root .
-# full reverse-engineer includes diagrams + code by default
+# full reverse-engineer plans first, then scoped scan (diagrams + code when present)
 python3 scripts/sac_orchestrate.py --scan-root . --system MySystem
 ```
 
@@ -248,6 +248,20 @@ Do not run `/plugin marketplace add`. Enable the skills in `skills/` and follow:
 Point the orchestrator at one or more repo roots:
 
 ```bash
+# 1. Breadth-first plan (repo map + ranked task list + checklists)
+python3 scripts/sac_orchestrate.py \
+  --repo . \
+  --system "Northstar Commerce" \
+  --scan-root /path/to/service-repo \
+  --scan-root /path/to/infra-repo \
+  --plan-only --json
+
+# 2. After review: one area walker (or unattended without --plan-only / --area)
+python3 scripts/sac_orchestrate.py \
+  --repo . --system "Northstar Commerce" \
+  --scan-root /path/to/service-repo \
+  --from-plan knowledge/.sac/re-plan.json --area packages --json
+
 python3 scripts/sac_orchestrate.py \
   --repo . \
   --system "Northstar Commerce" \
@@ -258,7 +272,7 @@ python3 scripts/sac_orchestrate.py \
   --json
 ```
 
-Or slash command / skill: **`/sac-reverse-engineer`**
+Or slash command / skill: **`/sac-reverse-engineer`** (plan → fan-out) · **`/sac-plan`** (stop after the map)
 
 ```bash
 python3 scripts/sac_validate.py --bundle sample-knowledge
@@ -272,10 +286,15 @@ python3 tests/test_sac.py
 
 | Agent | Role |
 |-------|------|
-| **architecture-orchestrator** | Lead RE pipeline across repos |
+| **architecture-orchestrator** | Lead RE pipeline: plan → area fan-out → graph |
 | **architecture-retriever** | Query-time retrieve; returns a card only (spawn-for-retrieve) |
 | **codebase-walker** | Packages, modules, service boundaries |
-| **iac-reverse-engineer** | CFN / TF / CDK / Pulumi / Helm / Kustomize / K8s |
+| **java-codebase-walker** | Java (Gradle / Maven), both first-class; plan-gated |
+| **typescript-codebase-walker** | JS/TS workspaces; plan-gated |
+| **python-codebase-walker** / **rust-codebase-walker** / **other-codebase-walker** | Language specialists; plan-gated |
+| **iac-reverse-engineer** | IaC inventory + K8s workloads |
+| **terraform-reverse-engineer** / **cdk-reverse-engineer** | IaC tool specialists; plan-gated |
+| **helm-** / **kustomize-** / **cloudformation-** / **pulumi-reverse-engineer** | Thin IaC specialists; plan-gated |
 | **network-iam-topology** | VPC, SG, LB, mesh, IAM |
 | **cicd-reverse-engineer** | Pipelines & deploy strategies |
 | **identity-auth-discoverer** | SSO/OAuth/IdP/JWT |
@@ -287,7 +306,8 @@ python3 tests/test_sac.py
 | Skill | Purpose |
 |-------|---------|
 | `sac-init` | Scaffold knowledge bundle |
-| `sac-reverse-engineer` | Full autonomous RE |
+| `sac-reverse-engineer` | Full autonomous RE (plan → task list → area fan-out) |
+| `sac-plan` | Breadth-first RE map + checklists (pause before walkers) |
 | `sac-scan` | Deterministic scanners only |
 | `sac-capture` | Scan → OKF concepts |
 | `sac-graph` | Dependency graph / Mermaid |

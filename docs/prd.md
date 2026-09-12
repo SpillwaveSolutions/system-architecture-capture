@@ -20,6 +20,6 @@ SAC reverse-engineers repos (+ optional wiki/tickets) into a structured OKF know
 
 ## Success
 
-- Point at repos → knowledge bundle with services, packages, infra, pipelines, identity
+- Point at repos → breadth-first plan + task list → area walker fan-out → knowledge bundle with services, packages, infra, pipelines, identity
 - Query via pack/search with typed edges
 - Works as Claude / Grok / Codex / OpenCode plugin
