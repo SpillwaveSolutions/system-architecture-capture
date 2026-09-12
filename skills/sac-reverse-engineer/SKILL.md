@@ -44,7 +44,7 @@ Artifacts (operational, not OKF concepts):
 - `knowledge/.sac/re-plan.json` — same, machine-readable
 - `knowledge/.sac/re-plan-progress.json` — checklist status
 
-5. **Review the plan**, then **spawn one child per focus area** (see the plan’s Suggested fan-out table). Independent domains in parallel. Pass that area’s checklist and `scan_domains`.
+5. **Review the plan**, then **spawn from the assignment tables**: one child per domain area **and** one child per listed language/IaC specialist. Signal-gated — do not spawn Java without Gradle/Maven, or Terraform without `.tf`. Independent domains in parallel; specialists enrich after the deterministic scan for that ecosystem. Pass that area’s checklist and `scan_domains`.
 6. Each child runs a **domain-scoped** scanner + capture (scripts own writes) and marks checklist items:
 
 ```bash
@@ -60,7 +60,7 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/sac_plan.py" mark \
   --plan knowledge/.sac/re-plan.json --area packages --item capture --status done
 ```
 
-Do **not** re-run `full_scan` in every child if the plan already scoped domains.
+Do **not** re-run `full_scan` in every child if the plan already scoped domains. Language/IaC specialists (`--area lang-java`, `iac-terraform`, …) are enrichment-only — they do not re-scan.
 
 7. After children return, **graph-builder** (or orchestrate without `--plan-only`) joins Package/Service ↔ Deployment ↔ LB ↔ Pipeline where evidence exists.
 8. Optional wiki/ticket ingest. Blast radius on critical services.

@@ -86,12 +86,25 @@ These populate the graph. **Do not spawn `architecture-retriever` as an RE walke
 | Sub-agent | Owns | Typical plan area |
 |-----------|------|-------------------|
 | `codebase-walker` | packages, modules, containers, monorepo map, code layout | `packages`, `containers`, `code`, `diagrams` |
-| `iac-reverse-engineer` | CFN / Terraform / CDK / Pulumi / Helm / Kustomize / K8s workloads | `iac`, `k8s` |
+| `java-codebase-walker` | Java (Gradle **and** Maven) enrichment | `lang-java` (signal-gated) |
+| `typescript-codebase-walker` | TypeScript / JavaScript workspaces | `lang-typescript` (signal-gated) |
+| `python-codebase-walker` | Python packaging | `lang-python` (signal-gated) |
+| `rust-codebase-walker` | Cargo workspaces | `lang-rust` (signal-gated) |
+| `other-codebase-walker` | Go, .NET, and other ecosystems | `lang-other` (signal-gated) |
+| `iac-reverse-engineer` | IaC inventory + K8s workloads | `iac`, `k8s` |
+| `terraform-reverse-engineer` | Terraform / Terragrunt enrichment | `iac-terraform` (signal-gated) |
+| `cdk-reverse-engineer` | CDK apps / stacks | `iac-cdk` (signal-gated) |
+| `cloudformation-reverse-engineer` | CFN templates (thin) | `iac-cloudformation` |
+| `pulumi-reverse-engineer` | Pulumi projects (thin) | `iac-pulumi` |
+| `helm-reverse-engineer` | Helm charts (thin) | `iac-helm` |
+| `kustomize-reverse-engineer` | Kustomize overlays (thin) | `iac-kustomize` |
 | `network-iam-topology` | VPC, subnets, SG/NACL, LB, mesh, IAM roles/policies | `network-iam` |
 | `cicd-reverse-engineer` | GitHub Actions, GitLab CI, Jenkins, CircleCI, Argo, Tekton | `cicd` |
 | `identity-auth-discoverer` | Auth0, Cognito, Okta, Azure AD, Keycloak, OIDC/SAML, JWT | `identity` |
 | `wiki-ticket-ingester` | Confluence/Notion/wiki + Jira/Linear/ADO/GitHub Issues | (exports, not a scan domain) |
 | `graph-builder` | dependency graph, data/control flow, blast radius, packs | after fan-out |
+
+**Signal-gated specialists:** spawn only when the plan lists them. Do not spawn `java-codebase-walker` without Gradle/Maven markers; do not spawn `terraform-reverse-engineer` without `.tf`. Language specialists do not replace `sac_scan_packages.py`. IaC specialists do not replace `sac_scan_iac.py`. K8s deploy / Service / LB stays on `k8s` + `network-iam`.
 
 ## Query-time (spawn-for-retrieve)
 
@@ -110,7 +123,7 @@ Project-memory stays on PKC `knowledge-retriever` (orthogonal fan-out).
 
 1. **Init** knowledge bundle (SAC catalogs include PKC ones).
 2. **Plan (breadth-first).** Run `sac_plan.py` / `--plan-only`. Read the repo map, ranked focus areas, and unchecked deep-dive checklists. Review before fan-out.
-3. **Fan-out.** Spawn **one child per focus area** from the plan. Pass that area’s checklist, agent name, and `scan_domains`. Independent domains run **in parallel**. Do not re-run `full_scan` in every child — prefer `sac_scan.py --domains …` + `sac_capture.py --domains …` or `sac_orchestrate.py --from-plan … --area <id>`. Scripts write discoveries; the child enriches and marks checklist items `done` or `blocked`.
+3. **Fan-out.** Spawn from the plan’s **assignment tables**: one child per domain area **and** one child per listed language/IaC specialist. Pass that area’s checklist, agent name, and `scan_domains`. Independent domains run **in parallel**; specialists start after the parent domain’s deterministic capture (or read what the scanner already wrote). Do not re-run `full_scan` in every child — prefer `sac_scan.py --domains …` + `sac_capture.py --domains …` or `sac_orchestrate.py --from-plan … --area <id>`. Scripts write discoveries; the child enriches and marks checklist items `done` or `blocked`.
 4. **Join.** After children return, `graph-builder` (or the orchestrate graph phase) links Package/Service ↔ Deployment ↔ LB ↔ Pipeline where evidence exists. Never invent `rel` values.
 5. **Ingest** wiki + tickets when provided (`wiki-ticket-ingester`).
 6. **Analyze** blast radius + data/control flows for critical services.

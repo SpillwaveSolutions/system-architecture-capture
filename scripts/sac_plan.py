@@ -43,6 +43,7 @@ PACKAGE_FILES = {
     "go.mod": "go",
     "pyproject.toml": "python",
     "setup.py": "python",
+    "setup.cfg": "python",
     "requirements.txt": "pip",
     "Pipfile": "pipenv",
     "composer.json": "composer",
@@ -50,6 +51,50 @@ PACKAGE_FILES = {
     "Package.swift": "swift",
     "mix.exs": "elixir",
 }
+
+JAVA_FILES = {
+    "pom.xml": "maven",
+    "build.gradle": "gradle",
+    "build.gradle.kts": "gradle",
+    "settings.gradle": "gradle-settings",
+    "settings.gradle.kts": "gradle-settings",
+    "gradle.properties": "gradle",
+    "gradlew": "gradle-wrapper",
+}
+
+TS_FILES = {
+    "package.json": "npm",
+    "tsconfig.json": "tsconfig",
+    "jsconfig.json": "jsconfig",
+    "pnpm-workspace.yaml": "pnpm-workspace",
+    "pnpm-lock.yaml": "pnpm",
+    "yarn.lock": "yarn",
+}
+
+PYTHON_FILES = {
+    "pyproject.toml": "python",
+    "setup.cfg": "python",
+    "setup.py": "python",
+    "requirements.txt": "pip",
+    "Pipfile": "pipenv",
+    "poetry.lock": "poetry",
+}
+
+RUST_FILES = {
+    "Cargo.toml": "cargo",
+    "Cargo.lock": "cargo-lock",
+}
+
+OTHER_LANG_FILES = {
+    "go.mod": "go",
+    "go.work": "go-workspace",
+    "Directory.Build.props": "dotnet",
+    "composer.json": "composer",
+    "Gemfile": "ruby",
+    "Package.swift": "swift",
+    "mix.exs": "elixir",
+}
+OTHER_LANG_SUFFIXES = {".csproj": "dotnet", ".fsproj": "dotnet", ".vbproj": "dotnet"}
 
 CONTAINER_EXACT = {
     "Dockerfile": "dockerfile",
@@ -228,6 +273,7 @@ def _checklist(pairs: list[tuple[str, str]]) -> list[dict[str, str]]:
 AREA_SPECS: dict[str, dict[str, Any]] = {
     "packages": {
         "title": "Packages / monorepo map",
+        "kind": "domain",
         "agent": "codebase-walker",
         "scan_domains": ["packages"],
         "weight": 3,
@@ -244,6 +290,7 @@ AREA_SPECS: dict[str, dict[str, Any]] = {
     },
     "containers": {
         "title": "Containers / images",
+        "kind": "domain",
         "agent": "codebase-walker",
         "scan_domains": ["containers"],
         "weight": 4,
@@ -259,6 +306,7 @@ AREA_SPECS: dict[str, dict[str, Any]] = {
     },
     "code": {
         "title": "Code structure / service layout",
+        "kind": "domain",
         "agent": "codebase-walker",
         "scan_domains": ["code"],
         "weight": 1,
@@ -273,6 +321,7 @@ AREA_SPECS: dict[str, dict[str, Any]] = {
     },
     "iac": {
         "title": "IaC stacks (Terraform / CDK / CFN / Pulumi / Helm / Kustomize)",
+        "kind": "domain",
         "agent": "iac-reverse-engineer",
         "scan_domains": ["iac"],
         "weight": 4,
@@ -289,6 +338,7 @@ AREA_SPECS: dict[str, dict[str, Any]] = {
     },
     "k8s": {
         "title": "Kubernetes deploy / workloads",
+        "kind": "domain",
         "agent": "iac-reverse-engineer",
         "scan_domains": ["k8s"],
         "weight": 3,
@@ -305,6 +355,7 @@ AREA_SPECS: dict[str, dict[str, Any]] = {
     },
     "network-iam": {
         "title": "Network / LB / IAM topology",
+        "kind": "domain",
         "agent": "network-iam-topology",
         "scan_domains": [],
         "weight": 3,
@@ -321,6 +372,7 @@ AREA_SPECS: dict[str, dict[str, Any]] = {
     },
     "cicd": {
         "title": "CI/CD pipelines",
+        "kind": "domain",
         "agent": "cicd-reverse-engineer",
         "scan_domains": ["cicd"],
         "weight": 5,
@@ -337,6 +389,7 @@ AREA_SPECS: dict[str, dict[str, Any]] = {
     },
     "identity": {
         "title": "Identity / SSO / auth",
+        "kind": "domain",
         "agent": "identity-auth-discoverer",
         "scan_domains": ["identity"],
         "weight": 4,
@@ -353,6 +406,7 @@ AREA_SPECS: dict[str, dict[str, Any]] = {
     },
     "diagrams": {
         "title": "Diagrams / C4 / Structurizr",
+        "kind": "domain",
         "agent": "codebase-walker",
         "scan_domains": ["diagrams", "structurizr"],
         "weight": 2,
@@ -362,6 +416,204 @@ AREA_SPECS: dict[str, dict[str, Any]] = {
                 ("capture", "Capture Diagram / C4 concepts (script-owned write)"),
                 ("link", "Join diagrams to the System / Service they describe"),
                 ("enrich", "Do not treat a diagram as runtime evidence without code/IaC backup"),
+            ]
+        ),
+    },
+}
+
+
+def _java_checklist(rows: list[dict[str, Any]]) -> list[dict[str, str]]:
+    blob = " ".join(str(r.get("kind") or "") for r in rows)
+    has_gradle = "gradle" in blob
+    has_maven = "maven" in blob
+    items: list[tuple[str, str]] = []
+    if has_gradle:
+        items.append(
+            (
+                "inventory-gradle",
+                "Inventory Gradle multi-project (settings.gradle(.kts), build.gradle(.kts), included builds)",
+            )
+        )
+    if has_maven:
+        items.append(("inventory-maven", "Inventory Maven reactors and pom.xml modules"))
+    if has_gradle and has_maven:
+        items.append(("mixed", "Document how Gradle and Maven coexist (which modules use which)"))
+    items.extend(
+        [
+            ("modules", "Map Java modules vs deployable services / libraries"),
+            ("apis", "Note OpenAPI, proto, Spring, or JAX-RS contracts if present"),
+            ("enrich", "Enrich Package/Service purpose for Java artifacts (do not re-run sac_scan_packages)"),
+        ]
+    )
+    return _checklist(items)
+
+
+def _resolve_checklist(spec: dict[str, Any], rows: list[dict[str, Any]]) -> list[dict[str, str]]:
+    raw = spec.get("checklist")
+    if callable(raw):
+        return raw(rows)
+    return [dict(x) for x in (raw or [])]
+
+
+SPECIALIST_SPECS: dict[str, dict[str, Any]] = {
+    "lang-java": {
+        "title": "Java (Gradle / Maven)",
+        "kind": "language",
+        "parent": "packages",
+        "agent": "java-codebase-walker",
+        "scan_domains": [],
+        "weight": 3,
+        "checklist": _java_checklist,
+    },
+    "lang-typescript": {
+        "title": "TypeScript / JavaScript",
+        "kind": "language",
+        "parent": "packages",
+        "agent": "typescript-codebase-walker",
+        "scan_domains": [],
+        "weight": 3,
+        "checklist": _checklist(
+            [
+                ("inventory", "Inventory package.json, tsconfig/jsconfig, and pnpm/yarn/npm workspaces"),
+                ("workspaces", "Map workspace packages vs deployable apps / libraries"),
+                ("apis", "Note OpenAPI, tRPC, GraphQL, or proto contracts if present"),
+                ("enrich", "Enrich Package/Service purpose for JS/TS artifacts (do not re-run sac_scan_packages)"),
+            ]
+        ),
+    },
+    "lang-python": {
+        "title": "Python",
+        "kind": "language",
+        "parent": "packages",
+        "agent": "python-codebase-walker",
+        "scan_domains": [],
+        "weight": 3,
+        "checklist": _checklist(
+            [
+                ("inventory", "Inventory pyproject.toml, setup.cfg/py, requirements, Pipfile / Poetry"),
+                ("packages", "Distinguish apps, libraries, and extras / optional deps"),
+                ("apis", "Note FastAPI / Django / OpenAPI / proto contracts if present"),
+                ("enrich", "Enrich Package/Service purpose for Python artifacts (do not re-run sac_scan_packages)"),
+            ]
+        ),
+    },
+    "lang-rust": {
+        "title": "Rust",
+        "kind": "language",
+        "parent": "packages",
+        "agent": "rust-codebase-walker",
+        "scan_domains": [],
+        "weight": 3,
+        "checklist": _checklist(
+            [
+                ("inventory", "Inventory Cargo.toml workspace members and crates"),
+                ("bins", "Distinguish bin vs lib crates and deployable services"),
+                ("enrich", "Enrich Package/Service purpose for Rust crates (do not re-run sac_scan_packages)"),
+            ]
+        ),
+    },
+    "lang-other": {
+        "title": "Other languages (Go, .NET, …)",
+        "kind": "language",
+        "parent": "packages",
+        "agent": "other-codebase-walker",
+        "scan_domains": [],
+        "weight": 2,
+        "checklist": _checklist(
+            [
+                ("inventory", "List Go / .NET / Ruby / PHP / Swift / Elixir manifests that are present"),
+                ("modules", "Map modules vs deployable services for those ecosystems"),
+                ("enrich", "Enrich Package/Service purpose (do not re-run sac_scan_packages)"),
+            ]
+        ),
+    },
+    "iac-terraform": {
+        "title": "Terraform",
+        "kind": "iac-tool",
+        "parent": "iac",
+        "agent": "terraform-reverse-engineer",
+        "scan_domains": [],
+        "weight": 4,
+        "checklist": _checklist(
+            [
+                ("modules", "Map root modules vs shared modules and Terragrunt if present"),
+                ("providers", "Note providers, backends, and workspace/env split"),
+                ("resources", "Record resource type counts (no full state dump)"),
+                ("enrich", "Enrich InfrastructureStack purpose (do not re-run sac_scan_iac)"),
+                ("link", "Join stacks to services they provision; leave VPC/LB/IAM topology to network-iam"),
+            ]
+        ),
+    },
+    "iac-cdk": {
+        "title": "CDK",
+        "kind": "iac-tool",
+        "parent": "iac",
+        "agent": "cdk-reverse-engineer",
+        "scan_domains": [],
+        "weight": 4,
+        "checklist": _checklist(
+            [
+                ("apps", "Inventory CDK apps / stacks (cdk.json, cdk.context.json)"),
+                ("languages", "Note CDK language (TypeScript / Python / Java / Go)"),
+                ("enrich", "Enrich InfrastructureStack purpose (do not re-run sac_scan_iac)"),
+                ("link", "Join CDK stacks to the services they provision"),
+            ]
+        ),
+    },
+    "iac-cloudformation": {
+        "title": "CloudFormation",
+        "kind": "iac-tool",
+        "parent": "iac",
+        "agent": "cloudformation-reverse-engineer",
+        "scan_domains": [],
+        "weight": 3,
+        "checklist": _checklist(
+            [
+                ("templates", "Inventory CFN templates (AWSTemplateFormatVersion)"),
+                ("enrich", "Enrich InfrastructureStack purpose (do not re-run sac_scan_iac)"),
+            ]
+        ),
+    },
+    "iac-pulumi": {
+        "title": "Pulumi",
+        "kind": "iac-tool",
+        "parent": "iac",
+        "agent": "pulumi-reverse-engineer",
+        "scan_domains": [],
+        "weight": 3,
+        "checklist": _checklist(
+            [
+                ("stacks", "Inventory Pulumi.yaml projects and stacks"),
+                ("enrich", "Enrich InfrastructureStack purpose (do not re-run sac_scan_iac)"),
+            ]
+        ),
+    },
+    "iac-helm": {
+        "title": "Helm",
+        "kind": "iac-tool",
+        "parent": "iac",
+        "agent": "helm-reverse-engineer",
+        "scan_domains": [],
+        "weight": 3,
+        "checklist": _checklist(
+            [
+                ("charts", "Inventory Chart.yaml charts and values files"),
+                ("enrich", "Enrich HelmChart / InfrastructureStack purpose (do not re-run sac_scan_iac)"),
+                ("link", "Join charts to the K8s workloads they render"),
+            ]
+        ),
+    },
+    "iac-kustomize": {
+        "title": "Kustomize",
+        "kind": "iac-tool",
+        "parent": "iac",
+        "agent": "kustomize-reverse-engineer",
+        "scan_domains": [],
+        "weight": 3,
+        "checklist": _checklist(
+            [
+                ("overlays", "Inventory kustomization.yaml bases and overlays"),
+                ("enrich", "Enrich InfrastructureStack purpose (do not re-run sac_scan_iac)"),
             ]
         ),
     },
@@ -490,6 +742,7 @@ def inspect_root(root: Path) -> dict[str, Any]:
     major_dirs: list[str] = []
     seen_major: set[str] = set()
     hits: dict[str, list[dict[str, Any]]] = {k: [] for k in AREA_SPECS}
+    specialist_hits: dict[str, list[dict[str, Any]]] = {k: [] for k in SPECIALIST_SPECS}
     ecosystems: set[str] = set()
     workspaces = False
     code_files = 0
@@ -513,8 +766,40 @@ def inspect_root(root: Path) -> dict[str, Any]:
                 if '"workspaces"' in text:
                     workspaces = True
                     extra["workspaces"] = True
+                if "aws-cdk" in text or "aws-cdk-lib" in text:
+                    specialist_hits["iac-cdk"].append(_hit("cdk-dep", rel))
             ecosystems.add(eco)
             hits["packages"].append(_hit(eco, rel, extra))
+
+        if name in JAVA_FILES:
+            specialist_hits["lang-java"].append(_hit(JAVA_FILES[name], rel))
+        if name in TS_FILES or (name.startswith("tsconfig") and name.endswith(".json")):
+            kind = TS_FILES.get(name, "tsconfig")
+            specialist_hits["lang-typescript"].append(_hit(kind, rel))
+        if name in PYTHON_FILES:
+            specialist_hits["lang-python"].append(_hit(PYTHON_FILES[name], rel))
+        if name in RUST_FILES:
+            specialist_hits["lang-rust"].append(_hit(RUST_FILES[name], rel))
+        other_kind = OTHER_LANG_FILES.get(name) or OTHER_LANG_SUFFIXES.get(suffix)
+        if other_kind:
+            specialist_hits["lang-other"].append(_hit(other_kind, rel))
+
+        if suffix == ".tf" or name in {"terragrunt.hcl", ".terraform.lock.hcl"}:
+            specialist_hits["iac-terraform"].append(_hit("terraform", rel))
+        if name in {"cdk.json", "cdk.context.json"}:
+            specialist_hits["iac-cdk"].append(_hit("cdk", rel))
+        if name in {"Pulumi.yaml", "Pulumi.yml"}:
+            specialist_hits["iac-pulumi"].append(_hit("pulumi", rel))
+        if name in {"Chart.yaml", "Chart.yml"}:
+            specialist_hits["iac-helm"].append(_hit("helm", rel))
+        if name in {"kustomization.yaml", "kustomization.yml"}:
+            specialist_hits["iac-kustomize"].append(_hit("kustomize", rel))
+        if suffix in {".yml", ".yaml", ".json", ".template"} and (
+            "template" in name.lower() or name.lower().startswith("cfn")
+        ):
+            cfn_peek = _peek(f)
+            if "AWSTemplateFormatVersion" in cfn_peek or '"AWSTemplateFormatVersion"' in cfn_peek:
+                specialist_hits["iac-cloudformation"].append(_hit("cloudformation", rel))
 
         if name in CONTAINER_EXACT or name.upper().startswith("DOCKERFILE"):
             kind = CONTAINER_EXACT.get(name, "dockerfile")
@@ -598,18 +883,19 @@ def inspect_root(root: Path) -> dict[str, Any]:
     else:
         layout = "mixed"
 
-    trimmed = {}
-    for key, rows in hits.items():
-        # de-dupe by path+kind
-        seen: set[tuple[str, str]] = set()
-        uniq: list[dict[str, Any]] = []
-        for row in rows:
-            k = (row.get("kind", ""), row.get("path", ""))
-            if k in seen:
-                continue
-            seen.add(k)
-            uniq.append(row)
-        trimmed[key] = uniq[:MAX_HITS]
+    def _trim(groups: dict[str, list[dict[str, Any]]]) -> dict[str, list[dict[str, Any]]]:
+        trimmed: dict[str, list[dict[str, Any]]] = {}
+        for key, rows in groups.items():
+            seen: set[tuple[str, str]] = set()
+            uniq: list[dict[str, Any]] = []
+            for row in rows:
+                k = (row.get("kind", ""), row.get("path", ""))
+                if k in seen:
+                    continue
+                seen.add(k)
+                uniq.append(row)
+            trimmed[key] = uniq[:MAX_HITS]
+        return trimmed
 
     return {
         "path": str(root),
@@ -619,13 +905,14 @@ def inspect_root(root: Path) -> dict[str, Any]:
         "ecosystems": sorted(ecosystems),
         "layout": layout,
         "workspaces": workspaces,
-        "hits": trimmed,
+        "hits": _trim(hits),
+        "specialist_hits": _trim(specialist_hits),
         "file_count": len(files),
     }
 
 
-def _signal_for(area_id: str, rows: list[dict[str, Any]]) -> int:
-    weight = int(AREA_SPECS[area_id]["weight"])
+def _signal_for(area_id: str, spec: dict[str, Any], rows: list[dict[str, Any]]) -> int:
+    weight = int(spec["weight"])
     n = 0
     for row in rows:
         if area_id == "code" and row.get("kind") == "source-files":
@@ -635,36 +922,52 @@ def _signal_for(area_id: str, rows: list[dict[str, Any]]) -> int:
     return n * weight
 
 
-def build_plan(roots: list[Path], *, system_name: str) -> dict[str, Any]:
-    inspected = [inspect_root(Path(r)) for r in roots]
-    combined: dict[str, list[dict[str, Any]]] = {k: [] for k in AREA_SPECS}
+def _combine_hits(inspected: list[dict[str, Any]], key: str) -> dict[str, list[dict[str, Any]]]:
+    combined: dict[str, list[dict[str, Any]]] = {}
     for info in inspected:
-        for area_id, rows in info["hits"].items():
+        for area_id, rows in (info.get(key) or {}).items():
+            bucket = combined.setdefault(area_id, [])
             prefix = info["name"]
             for row in rows:
                 item = dict(row)
                 item["root"] = prefix
-                combined[area_id].append(item)
+                bucket.append(item)
+    return combined
+
+
+def _area_entry(area_id: str, spec: dict[str, Any], rows: list[dict[str, Any]]) -> dict[str, Any] | None:
+    signal = _signal_for(area_id, spec, rows)
+    if signal <= 0:
+        return None
+    return {
+        "id": area_id,
+        "title": spec["title"],
+        "kind": spec.get("kind") or "domain",
+        "parent": spec.get("parent"),
+        "signal": signal,
+        "hit_count": len(rows),
+        "agent": spec["agent"],
+        "scan_domains": list(spec.get("scan_domains") or []),
+        "hits": rows[:MAX_HITS],
+        "checklist": _resolve_checklist(spec, rows),
+        "spawn": True,
+    }
+
+
+def build_plan(roots: list[Path], *, system_name: str) -> dict[str, Any]:
+    inspected = [inspect_root(Path(r)) for r in roots]
+    combined = _combine_hits(inspected, "hits")
+    combined_spec = _combine_hits(inspected, "specialist_hits")
 
     focus: list[dict[str, Any]] = []
     for area_id, spec in AREA_SPECS.items():
-        rows = combined[area_id]
-        signal = _signal_for(area_id, rows)
-        if signal <= 0:
-            continue
-        items = [dict(x) for x in spec["checklist"]]
-        focus.append(
-            {
-                "id": area_id,
-                "title": spec["title"],
-                "signal": signal,
-                "hit_count": len(rows),
-                "agent": spec["agent"],
-                "scan_domains": list(spec["scan_domains"]),
-                "hits": rows[:MAX_HITS],
-                "checklist": items,
-            }
-        )
+        entry = _area_entry(area_id, spec, combined.get(area_id) or [])
+        if entry:
+            focus.append(entry)
+    for area_id, spec in SPECIALIST_SPECS.items():
+        entry = _area_entry(area_id, spec, combined_spec.get(area_id) or [])
+        if entry:
+            focus.append(entry)
     focus.sort(key=lambda a: (-int(a["signal"]), a["id"]))
     for i, area in enumerate(focus, start=1):
         area["rank"] = i
@@ -695,6 +998,19 @@ def build_plan(roots: list[Path], *, system_name: str) -> dict[str, Any]:
         ],
         "ecosystems": ecosystems,
         "focus_areas": focus,
+        "specialists": [
+            {
+                "id": a["id"],
+                "kind": a.get("kind"),
+                "parent": a.get("parent"),
+                "agent": a.get("agent"),
+                "title": a.get("title"),
+                "signal": a.get("signal"),
+                "hit_count": a.get("hit_count"),
+            }
+            for a in focus
+            if a.get("kind") in ("language", "iac-tool")
+        ],
         "artifacts": {
             "plan_json": f"{SAC_DIRNAME}/{PLAN_JSON_NAME}",
             "plan_md": f"{SAC_DIRNAME}/{PLAN_MD_NAME}",
@@ -781,28 +1097,68 @@ def render_plan_markdown(plan: dict[str, Any]) -> str:
         lines.append(f"- Files visited (BFS cap): {root.get('file_count')}")
         lines.append("")
 
+    def _table(areas: list[dict[str, Any]]) -> None:
+        lines.extend(
+            [
+                "| Rank | Area | Signal | Hits | Agent | Scan domains |",
+                "|------|------|--------|------|-------|--------------|",
+            ]
+        )
+        for area in areas:
+            domains = ", ".join(area.get("scan_domains") or []) or "enrichment only"
+            lines.append(
+                f"| {area.get('rank')} | `{area['id']}` — {area.get('title')} | "
+                f"{area.get('signal')} | {area.get('hit_count')} | `{area.get('agent')}` | `{domains}` |"
+            )
+        lines.append("")
+
+    domains_only = [a for a in (plan.get("focus_areas") or []) if a.get("kind", "domain") == "domain"]
+    lang_specs = [a for a in (plan.get("focus_areas") or []) if a.get("kind") == "language"]
+    iac_specs = [a for a in (plan.get("focus_areas") or []) if a.get("kind") == "iac-tool"]
+
+    lines.extend(["## Focus areas (ranked by signal)", ""])
+    _table(domains_only)
+
     lines.extend(
         [
-            "## Focus areas (ranked by signal)",
+            "## Language specialists (signal-gated)",
             "",
-            "| Rank | Area | Signal | Hits | Agent | Scan domains |",
-            "|------|------|--------|------|-------|--------------|",
+            "Spawn **only** when markers exist. Do not spawn Java without Gradle/Maven,",
+            "or Python without pyproject/setup/requirements. Specialists enrich after",
+            "`sac_scan_packages.py` — they do not replace it.",
+            "",
         ]
     )
-    for area in plan.get("focus_areas") or []:
-        domains = ", ".join(area.get("scan_domains") or []) or "enrichment only"
-        lines.append(
-            f"| {area.get('rank')} | `{area['id']}` — {area.get('title')} | "
-            f"{area.get('signal')} | {area.get('hit_count')} | `{area.get('agent')}` | `{domains}` |"
-        )
-    lines.append("")
+    if lang_specs:
+        _table(lang_specs)
+    else:
+        lines.append("_None — no language specialist signals._")
+        lines.append("")
+
+    lines.extend(
+        [
+            "## IaC specialists (signal-gated)",
+            "",
+            "Spawn **only** when tool markers exist (no Terraform walker without `.tf`).",
+            "K8s deploy / Service / LB stays on `k8s` + `network-iam`. Specialists enrich",
+            "after `sac_scan_iac.py`.",
+            "",
+        ]
+    )
+    if iac_specs:
+        _table(iac_specs)
+    else:
+        lines.append("_None — no IaC specialist signals._")
+        lines.append("")
+
     lines.extend(
         [
             "## Suggested fan-out",
             "",
-            "Parent reviews this plan, then **spawns one child per focus area**.",
-            "Independent domains run in parallel. Do **not** re-run `full_scan` in every child.",
-            "`graph-builder` joins evidence after children return. Retrievers are not walkers.",
+            "Parent reviews this plan, then **spawns one child per domain area and each listed specialist**.",
+            "Independent domains run in parallel. Specialists start after the parent domain's",
+            "deterministic capture (or read what the scanner already wrote).",
+            "Do **not** re-run `full_scan` in every child. Retrievers are not walkers.",
             "",
             "```bash",
             "# Pause after plan",
@@ -822,7 +1178,8 @@ def render_plan_markdown(plan: dict[str, Any]) -> str:
         ]
     )
     for area in plan.get("focus_areas") or []:
-        lines.append(f"### `{area['id']}` — `{area.get('agent')}`")
+        kind = area.get("kind") or "domain"
+        lines.append(f"### `{area['id']}` — `{area.get('agent')}` ({kind})")
         lines.append("")
         lines.append(area.get("title") or area["id"])
         sample = ", ".join(f"`{h.get('path')}`" for h in (area.get("hits") or [])[:8] if h.get("path"))

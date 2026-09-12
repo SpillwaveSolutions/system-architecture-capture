@@ -25,7 +25,7 @@ SAC (this plugin — reverse-engineer runtime & infrastructure topology)
 | sac_common.py | catalogs, frontmatter, bundle IO |
 | sac_scan_*.py | domain scanners |
 | sac_scan.py | unified scan |
-| sac_plan.py | breadth-first RE map + checklists |
+| sac_plan.py | breadth-first RE map + signal-gated language/IaC specialists |
 | sac_capture.py | scan → concepts |
 | sac_orchestrate.py | multi-repo pipeline (plan → scoped capture) |
 | sac_graph.py / sac_blast_radius.py | graph analytics |

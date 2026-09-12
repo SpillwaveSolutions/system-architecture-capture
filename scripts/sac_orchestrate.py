@@ -59,13 +59,28 @@ def _public_plan(plan: dict) -> dict:
                 "id": a.get("id"),
                 "rank": a.get("rank"),
                 "title": a.get("title"),
+                "kind": a.get("kind") or "domain",
+                "parent": a.get("parent"),
                 "signal": a.get("signal"),
                 "hit_count": a.get("hit_count"),
                 "agent": a.get("agent"),
                 "scan_domains": a.get("scan_domains"),
+                "spawn": a.get("spawn", True),
                 "checklist": a.get("checklist"),
             }
             for a in (plan.get("focus_areas") or [])
+        ],
+        "specialists": plan.get("specialists") or [
+            {
+                "id": a.get("id"),
+                "kind": a.get("kind"),
+                "parent": a.get("parent"),
+                "agent": a.get("agent"),
+                "title": a.get("title"),
+                "signal": a.get("signal"),
+            }
+            for a in (plan.get("focus_areas") or [])
+            if a.get("kind") in ("language", "iac-tool")
         ],
         "artifacts": plan.get("artifacts"),
         "written": plan.get("written"),
@@ -136,22 +151,28 @@ def orchestrate(
         }
 
     domains = scan_domains_from_plan(plan, area=area)
-    mat = materialize_repos(bundle, scan_roots, system_name, author=author, domains=domains or None)
-    phases_done.extend(["scan-*", "capture"])
-    if area:
-        mark_area_item_if_present(
-            bundle, area=area, item="capture", status="done", note="orchestrate --from-plan"
-        )
+    focus_match = next((a for a in (plan.get("focus_areas") or []) if a.get("id") == area), None)
+    enrichment_only = bool(area and focus_match is not None and not (focus_match.get("scan_domains") or []))
+    if enrichment_only:
+        mat = {"created": 0, "updated": 0, "skipped": 0, "refused": 0, "repos": [], "domains": []}
+        phases_done.append("enrichment")
     else:
-        for focus in plan.get("focus_areas") or []:
-            if "capture" in {i["id"] for i in (focus.get("checklist") or [])}:
-                mark_area_item_if_present(
-                    bundle,
-                    area=focus["id"],
-                    item="capture",
-                    status="done",
-                    note="orchestrate scoped capture",
-                )
+        mat = materialize_repos(bundle, scan_roots, system_name, author=author, domains=domains or None)
+        phases_done.extend(["scan-*", "capture"])
+        if area:
+            mark_area_item_if_present(
+                bundle, area=area, item="capture", status="done", note="orchestrate --from-plan"
+            )
+        else:
+            for focus in plan.get("focus_areas") or []:
+                if "capture" in {i["id"] for i in (focus.get("checklist") or [])}:
+                    mark_area_item_if_present(
+                        bundle,
+                        area=focus["id"],
+                        item="capture",
+                        status="done",
+                        note="orchestrate scoped capture",
+                    )
     if wiki and wiki.exists():
         from sac_ingest_wiki import ingest_dir
         mat["wiki"] = ingest_dir(bundle, wiki, author=author)

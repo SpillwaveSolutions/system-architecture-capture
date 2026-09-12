@@ -15,13 +15,15 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/sac_orchestrate.py" \
   --repo . --system "$SYSTEM_NAME" --scan-root "$REPO_ROOT" --plan-only --json
 ```
 
-Writes `knowledge/.sac/re-plan.md` + `.json` (repo map, ranked areas, unchecked checklists, suggested sub-agents).
+Writes `knowledge/.sac/re-plan.md` + `.json` (repo map, ranked domain areas, **signal-gated language/IaC specialists**, unchecked checklists, suggested sub-agents). Do not spawn a specialist the plan did not list.
 
 Mark progress after an area walker finishes an item:
 
 ```bash
 python3 "${CLAUDE_PLUGIN_ROOT}/scripts/sac_plan.py" mark \
   --plan knowledge/.sac/re-plan.json --area iac --item capture --status done
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/sac_plan.py" mark \
+  --plan knowledge/.sac/re-plan.json --area lang-java --item inventory-maven --status done
 
 python3 "${CLAUDE_PLUGIN_ROOT}/scripts/sac_plan.py" mark \
   --plan knowledge/.sac/re-plan.json --area identity --item jwt --status blocked \

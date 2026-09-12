@@ -445,6 +445,13 @@ class TestOrchestrate(unittest.TestCase):
             self.assertIn("- [ ]", text)
             self.assertIn("codebase-walker", text)
             self.assertIn("iac-reverse-engineer", text)
+            self.assertIn("java-codebase-walker", text)
+            self.assertIn("terraform-reverse-engineer", text)
+            spec_ids = {s["id"] for s in result["plan"].get("specialists") or []}
+            self.assertIn("lang-java", spec_ids)
+            self.assertIn("iac-terraform", spec_ids)
+            self.assertNotIn("lang-python", spec_ids)
+            self.assertNotIn("iac-cdk", spec_ids)
 
     def test_orchestrate_from_plan_area_scoped(self):
         with tempfile.TemporaryDirectory() as td:
@@ -474,6 +481,31 @@ class TestOrchestrate(unittest.TestCase):
             pkgs = [p for p in pkgs if p.name != "index.md"]
             self.assertGreater(len(pkgs), 0)
 
+    def test_orchestrate_from_plan_specialist_is_enrichment_only(self):
+        with tempfile.TemporaryDirectory() as td:
+            host = Path(td)
+            planned = orchestrate(
+                host,
+                [FIXTURE],
+                system_name="Fixture System",
+                bundle_name="knowledge",
+                author=AUTHOR,
+                plan_only=True,
+            )
+            plan_json = Path(planned["bundle"]) / ".sac" / "re-plan.json"
+            result = orchestrate(
+                host,
+                [FIXTURE],
+                system_name="Fixture System",
+                bundle_name="knowledge",
+                author=AUTHOR,
+                from_plan=plan_json,
+                area="lang-java",
+            )
+            self.assertIn("enrichment", result["phases"])
+            self.assertNotIn("capture", result["phases"])
+            self.assertEqual((result["materialize"] or {}).get("domains"), [])
+
 
 class TestPlan(unittest.TestCase):
     def test_plan_fixture_detects_domains_and_checklists(self):
@@ -493,6 +525,24 @@ class TestPlan(unittest.TestCase):
         self.assertEqual(agents["network-iam"], "network-iam-topology")
         self.assertEqual(agents["cicd"], "cicd-reverse-engineer")
         self.assertEqual(agents["identity"], "identity-auth-discoverer")
+        spec_ids = {s["id"] for s in plan.get("specialists") or []}
+        self.assertIn("lang-java", spec_ids)
+        self.assertIn("lang-typescript", spec_ids)
+        self.assertIn("iac-terraform", spec_ids)
+        self.assertIn("iac-helm", spec_ids)
+        for absent in ("lang-python", "lang-rust", "lang-other", "iac-cdk", "iac-pulumi", "iac-kustomize", "iac-cloudformation"):
+            self.assertNotIn(absent, spec_ids)
+        self.assertEqual(agents["lang-java"], "java-codebase-walker")
+        self.assertEqual(agents["lang-typescript"], "typescript-codebase-walker")
+        self.assertEqual(agents["iac-terraform"], "terraform-reverse-engineer")
+        self.assertEqual(agents["iac-helm"], "helm-reverse-engineer")
+        java = next(a for a in plan["focus_areas"] if a["id"] == "lang-java")
+        java_items = {i["id"] for i in java["checklist"]}
+        self.assertIn("inventory-maven", java_items)
+        self.assertNotIn("inventory-gradle", java_items)
+        self.assertEqual(java.get("kind"), "language")
+        self.assertEqual(java.get("parent"), "packages")
+        self.assertEqual(java.get("scan_domains"), [])
         for area in plan["focus_areas"]:
             self.assertGreaterEqual(area["signal"], 1)
             self.assertTrue(area["checklist"])
@@ -500,6 +550,56 @@ class TestPlan(unittest.TestCase):
                 self.assertEqual(item["status"], "pending")
                 self.assertIn("id", item)
                 self.assertIn("text", item)
+
+    def test_plan_java_gradle_and_mixed_are_first_class(self):
+        with tempfile.TemporaryDirectory() as td:
+            gradle_only = Path(td) / "gradle-app"
+            gradle_only.mkdir()
+            (gradle_only / "settings.gradle.kts").write_text("rootProject.name = \"demo\"\n", encoding="utf-8")
+            (gradle_only / "build.gradle.kts").write_text("plugins { java }\n", encoding="utf-8")
+            gplan = build_plan([gradle_only], system_name="Gradle Only")
+            g_ids = {a["id"] for a in gplan["focus_areas"]}
+            self.assertIn("lang-java", g_ids)
+            self.assertNotIn("lang-typescript", g_ids)
+            g_java = next(a for a in gplan["focus_areas"] if a["id"] == "lang-java")
+            self.assertIn("inventory-gradle", {i["id"] for i in g_java["checklist"]})
+            self.assertNotIn("inventory-maven", {i["id"] for i in g_java["checklist"]})
+
+            mixed = Path(td) / "mixed-java"
+            mixed.mkdir()
+            (mixed / "pom.xml").write_text(
+                "<project><artifactId>mixed</artifactId></project>\n", encoding="utf-8"
+            )
+            (mixed / "settings.gradle").write_text("rootProject.name = 'mixed'\n", encoding="utf-8")
+            (mixed / "build.gradle").write_text("apply plugin: 'java'\n", encoding="utf-8")
+            mplan = build_plan([mixed], system_name="Mixed Java")
+            m_java = next(a for a in mplan["focus_areas"] if a["id"] == "lang-java")
+            m_items = {i["id"] for i in m_java["checklist"]}
+            self.assertIn("inventory-gradle", m_items)
+            self.assertIn("inventory-maven", m_items)
+            self.assertIn("mixed", m_items)
+
+    def test_plan_does_not_spawn_absent_specialists(self):
+        with tempfile.TemporaryDirectory() as td:
+            py = Path(td) / "py-only"
+            py.mkdir()
+            (py / "pyproject.toml").write_text("[project]\nname = \"x\"\n", encoding="utf-8")
+            plan = build_plan([py], system_name="Py Only")
+            ids = {a["id"] for a in plan["focus_areas"]}
+            self.assertIn("lang-python", ids)
+            self.assertEqual(next(a for a in plan["focus_areas"] if a["id"] == "lang-python")["agent"], "python-codebase-walker")
+            self.assertNotIn("lang-java", ids)
+            self.assertNotIn("lang-typescript", ids)
+            self.assertNotIn("iac-terraform", ids)
+
+            go = Path(td) / "go-only"
+            go.mkdir()
+            (go / "go.mod").write_text("module example.com/x\n", encoding="utf-8")
+            gplan = build_plan([go], system_name="Go Only")
+            g_ids = {a["id"] for a in gplan["focus_areas"]}
+            self.assertIn("lang-other", g_ids)
+            self.assertNotIn("lang-java", g_ids)
+            self.assertEqual(next(a for a in gplan["focus_areas"] if a["id"] == "lang-other")["agent"], "other-codebase-walker")
 
     def test_plan_writes_and_mark_progress(self):
         with tempfile.TemporaryDirectory() as td:
@@ -515,8 +615,10 @@ class TestPlan(unittest.TestCase):
             self.assertIn("- [ ] `inventory`", text)
             self.assertNotIn("- [x]", text)
             self.assertIn("codebase-walker", text)
+            marked_java = mark_checklist(bundle, area="lang-java", item="inventory-maven", status="done")
+            self.assertGreaterEqual(marked_java["checklist"]["done"], 1)
             marked = mark_checklist(bundle, area="packages", item="inventory", status="done")
-            self.assertEqual(marked["checklist"]["done"], 1)
+            self.assertGreaterEqual(marked["checklist"]["done"], 2)
             reloaded = load_plan(bundle)
             pkg = next(a for a in reloaded["focus_areas"] if a["id"] == "packages")
             inv = next(i for i in pkg["checklist"] if i["id"] == "inventory")
