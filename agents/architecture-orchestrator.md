@@ -86,7 +86,7 @@ These populate the graph. **Do not spawn `architecture-retriever` as an RE walke
 | Sub-agent | Owns | Typical plan area |
 |-----------|------|-------------------|
 | `codebase-walker` | packages, modules, containers, monorepo map, code layout | `packages`, `containers`, `code`, `diagrams` |
-| `java-codebase-walker` | Java (Gradle **and** Maven) enrichment | `lang-java` (signal-gated) |
+| `java-codebase-walker` | Java (Gradle); also Maven when `pom.xml` is present | `lang-java` (signal-gated) |
 | `typescript-codebase-walker` | TypeScript / JavaScript workspaces | `lang-typescript` (signal-gated) |
 | `python-codebase-walker` | Python packaging | `lang-python` (signal-gated) |
 | `rust-codebase-walker` | Cargo workspaces | `lang-rust` (signal-gated) |
@@ -104,7 +104,7 @@ These populate the graph. **Do not spawn `architecture-retriever` as an RE walke
 | `wiki-ticket-ingester` | Confluence/Notion/wiki + Jira/Linear/ADO/GitHub Issues | (exports, not a scan domain) |
 | `graph-builder` | dependency graph, data/control flow, blast radius, packs | after fan-out |
 
-**Signal-gated specialists:** spawn only when the plan lists them. Do not spawn `java-codebase-walker` without Gradle/Maven markers; do not spawn `terraform-reverse-engineer` without `.tf`. Language specialists do not replace `sac_scan_packages.py`. IaC specialists do not replace `sac_scan_iac.py`. K8s deploy / Service / LB stays on `k8s` + `network-iam`.
+**Signal-gated specialists:** spawn only when the plan lists them. Do not spawn `java-codebase-walker` without Gradle or Maven markers; do not spawn `terraform-reverse-engineer` without `.tf`. Language specialists do not replace `sac_scan_packages.py`. IaC specialists do not replace `sac_scan_iac.py`. K8s deploy / Service / LB stays on `k8s` + `network-iam`.
 
 ## Query-time (spawn-for-retrieve)
 

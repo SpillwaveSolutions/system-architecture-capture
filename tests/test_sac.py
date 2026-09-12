@@ -533,6 +533,7 @@ class TestPlan(unittest.TestCase):
         for absent in ("lang-python", "lang-rust", "lang-other", "iac-cdk", "iac-pulumi", "iac-kustomize", "iac-cloudformation"):
             self.assertNotIn(absent, spec_ids)
         self.assertEqual(agents["lang-java"], "java-codebase-walker")
+        self.assertEqual(next(a for a in plan["focus_areas"] if a["id"] == "lang-java")["title"], "Java (Gradle)")
         self.assertEqual(agents["lang-typescript"], "typescript-codebase-walker")
         self.assertEqual(agents["iac-terraform"], "terraform-reverse-engineer")
         self.assertEqual(agents["iac-helm"], "helm-reverse-engineer")
@@ -562,6 +563,7 @@ class TestPlan(unittest.TestCase):
             self.assertIn("lang-java", g_ids)
             self.assertNotIn("lang-typescript", g_ids)
             g_java = next(a for a in gplan["focus_areas"] if a["id"] == "lang-java")
+            self.assertEqual(g_java["title"], "Java (Gradle)")
             self.assertIn("inventory-gradle", {i["id"] for i in g_java["checklist"]})
             self.assertNotIn("inventory-maven", {i["id"] for i in g_java["checklist"]})
 
