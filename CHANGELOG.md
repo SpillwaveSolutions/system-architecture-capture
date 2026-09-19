@@ -1,6 +1,8 @@
 # Changelog
 
-## Unreleased
+## 0.5.7 — 2026-09-19
+
+Retrieval-ladder patch: the rg search path no longer walks the bundle; fail-closed `find_rg`; stable result order. Closes [#45](https://github.com/SpillwaveSolutions/system-architecture-capture/issues/45) via [#46](https://github.com/SpillwaveSolutions/system-architecture-capture/pull/46).
 
 ### Fixed
 
