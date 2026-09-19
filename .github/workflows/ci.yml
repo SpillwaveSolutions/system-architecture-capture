@@ -10,5 +10,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      # ci-local.sh parses the workflows; setup-python ships no pyyaml.
+      - name: Install pyyaml
+        run: pip install pyyaml
       - name: CI
         run: bash tools/ci-local.sh

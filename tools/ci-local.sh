@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd "$(dirname "$0")/.."
+# An unparseable workflow fails at startup with zero jobs, so CI reports
+# nothing and every PR still looks green (PKC #82). This whole file is the
+# one CI step, so it cannot catch that from inside CI -- it catches it here,
+# before the push.
+python3 -c "import glob,yaml; fs=sorted(glob.glob('.github/workflows/*.yml')); assert fs, 'no workflows found'; [yaml.safe_load(open(f)) for f in fs]"
 python3 tools/check_consistency.py
 python3 -m py_compile scripts/*.py
 python3 tests/test_sac.py -v
