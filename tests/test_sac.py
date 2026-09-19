@@ -1178,6 +1178,43 @@ class TestPackReverseIndex(unittest.TestCase):
         finally:
             shutil.rmtree(tmp)
 
+    def test_find_rg_fails_closed_on_unusable_override(self):
+        from sac_common import find_rg
+
+        os.environ["SAC_RG_PATH"] = "/definitely/not/a/real/rg-binary"
+        self.assertIsNone(find_rg())
+
+    def test_search_rg_matches_scan_on_sample(self):
+        scan = search(SAMPLE, "service", use_rg=False)
+        accel = search(SAMPLE, "service", use_rg=True)
+        self.assertGreaterEqual(scan["count"], 1)
+        self.assertEqual((scan["engine"], accel["engine"]), ("scan", "rg"))
+        self.assertEqual(
+            [r["path"] for r in scan["results"]], [r["path"] for r in accel["results"]]
+        )
+        self.assertEqual(
+            [r["score"] for r in scan["results"]], [r["score"] for r in accel["results"]]
+        )
+
+    def test_search_rg_path_does_not_walk_the_bundle(self):
+        """The prefilter exists to avoid touching non-matching files; the rg
+        path must not materialize iter_concepts() (it did, plus a resolve()
+        per file -- the PKC v0.9.0 storm)."""
+        import sac_search
+
+        real = sac_search.iter_concepts
+
+        def boom(_bundle):
+            raise AssertionError("rg path must not materialize iter_concepts()")
+
+        sac_search.iter_concepts = boom
+        try:
+            out = search(SAMPLE, "service", use_rg=True)
+        finally:
+            sac_search.iter_concepts = real
+        self.assertEqual(out["engine"], "rg")
+        self.assertGreaterEqual(out["count"], 1)
+
     def test_pack_rg_matches_scan_on_sample(self):
         scan = pack(SAMPLE, "services/order-service.md", hops=2, max_nodes=200, use_rg=False)
         accel = pack(SAMPLE, "services/order-service.md", hops=2, max_nodes=200, use_rg=True)

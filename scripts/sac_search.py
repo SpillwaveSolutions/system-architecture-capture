@@ -12,6 +12,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from sac_common import (  # noqa: E402
     find_rg,
+    is_concept_rel,
     iter_concepts,
     parse_frontmatter,
     resolve_knowledge_root,
@@ -22,16 +23,29 @@ from sac_common import (  # noqa: E402
 def search(bundle: Path, query: str, *, limit: int = 20, use_rg: bool | None = None) -> dict:
     terms = [t.lower() for t in re.split(r"\s+", query.strip()) if t]
     results = []
-    files = iter_concepts(bundle)
     engine = "scan"
+    files: list[Path] | None = None
     if use_rg is not False:
         hits = rg_list_files(bundle, terms, ignore_case=True)
         if hits is not None:
             engine = "rg"
-            allowed = {p.resolve() for p in hits}
-            files = [p for p in files if p.resolve() in allowed]
-        elif use_rg is True and not find_rg():
-            engine = "scan"
+            # rg_list_files returns resolved paths. Filter them as strings
+            # against the concept rules; never materialize iter_concepts() or
+            # call Path.resolve() per file on this path (that syscall storm made
+            # the rg rung slower than the scan it replaced at 10k concepts).
+            # Resolve the bundle ONCE, and rebuild each hit under the caller's
+            # `bundle` so relative_to(bundle) below holds through a symlink alias.
+            bundle_root = bundle.resolve()
+            files = []
+            for p in hits:
+                try:
+                    rel = p.relative_to(bundle_root).as_posix()
+                except ValueError:
+                    continue
+                if is_concept_rel(rel):
+                    files.append(bundle / rel)
+    if files is None:
+        files = iter_concepts(bundle)
     for p in files:
         text = p.read_text(encoding="utf-8")
         fm, body = parse_frontmatter(text)
@@ -58,7 +72,7 @@ def search(bundle: Path, query: str, *, limit: int = 20, use_rg: bool | None = N
             "score": score,
             "snippet": snip[:200],
         })
-    results.sort(key=lambda r: -r["score"])
+    results.sort(key=lambda r: (-r["score"], r["path"]))
     results = results[:limit]
     return {"query": query, "count": len(results), "engine": engine, "results": results}
 
