@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+### Fixed
+
+- **`sac_search` rg path no longer walks the whole bundle.** It materialized
+  `iter_concepts()` and called `Path.resolve()` per file regardless of how few
+  hits rg returned — the same syscall storm PKC removed in v0.9.1. Hits are now
+  filtered as strings against the concept rules (`is_concept_rel`, new in
+  `sac_common`) with the bundle resolved once. Scoring and results are
+  unchanged; `is_concept_path` now delegates to `is_concept_rel`.
+- **`find_rg()` fails closed on an unusable override.** `SAC_RG_PATH` /
+  `PKC_RG_PATH` / `OKF_RG_PATH` / `SECOND_BRAIN_RG_PATH` pointing at a missing
+  or non-executable path now disables rg instead of falling through to
+  `PATH` — the research-graph / PKC 0.9.5 rule, so one variable means one
+  thing across plugins.
+- `sac_search` breaks score ties by path, so result order is stable across
+  engines.
+
 ## 0.5.6 — 2026-09-12
 
 ### Added

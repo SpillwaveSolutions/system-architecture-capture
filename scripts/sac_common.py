@@ -1125,6 +1125,8 @@ def find_rg() -> str | None:
         found = shutil.which(override)
         if found:
             return found
+        # Explicit override that is not usable: fail closed, never PATH.
+        return None
     return shutil.which("rg")
 
 
@@ -1200,19 +1202,27 @@ def rg_list_files(
     return sorted(matched or [])
 
 
+def is_concept_rel(rel: str) -> bool:
+    """Same skip rules as iter_concepts, on a bundle-relative path. No filesystem."""
+    rel = rel.replace("\\", "/").lstrip("/")
+    if not rel:
+        return False
+    name = rel.rsplit("/", 1)[-1]
+    lower = name.lower()
+    if not (lower.endswith(".md") or lower.endswith(".markdown")):
+        return False
+    if name in {"index.md", "log.md"}:
+        return False
+    return "packs" not in rel.split("/")
+
+
 def is_concept_path(bundle: Path, path: Path) -> bool:
     """Same skip rules as iter_concepts: not index.md, log.md, or packs/."""
-    if path.suffix.lower() not in {".md", ".markdown"}:
-        return False
-    if path.name in {"index.md", "log.md"}:
-        return False
     try:
-        parts = path.resolve().relative_to(bundle.resolve()).parts
+        rel = path.resolve().relative_to(bundle.resolve()).as_posix()
     except ValueError:
         return False
-    if "packs" in parts:
-        return False
-    return True
+    return is_concept_rel(rel)
 
 
 def iter_concepts(bundle: Path) -> list[Path]:
