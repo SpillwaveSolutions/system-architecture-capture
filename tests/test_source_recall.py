@@ -20,7 +20,7 @@ class SourceRecallTests(unittest.TestCase):
             wiki.mkdir()
             ensure_bundle(bundle)
             west = wiki / "west.md"
-            west.write_text("# West relay retention\n\nThe west relay archives amber samples for 81 evenings.\n")
+            west.write_text("# West relay schedule\n\nThe west relay archives amber samples for 81 evenings. Retention record.\n")
             east = wiki / "east.md"
             expected_path = "discoveries/wiki-east.md"
             for days in (12, 37):
@@ -32,12 +32,15 @@ class SourceRecallTests(unittest.TestCase):
                 else:
                     self.assertEqual(stats["updated"], 1)
                 self.assertTrue(validate_bundle(bundle, schema=True)["ok"])
-                for query in ("east relay retention", "amber samples east", "east archives evenings"):
+                for query in ("east relay retention", "amber samples east", "east archives evenings", "amber retention"):
                     with self.subTest(query=query, days=days):
                         hits = search(bundle, query, limit=3)["results"]
                         paths = [row["path"] for row in hits]
-                        self.assertIn(expected_path, paths, paths)
-                        hit = next(row for row in hits if row["path"] == expected_path)
+                        self.assertEqual(paths[:1], [expected_path], paths)
+                        if query == "amber retention":
+                            self.assertEqual(paths[1:], ["discoveries/wiki-west.md"])
+                            self.assertGreater(hits[0]["score"], hits[1]["score"])
+                        hit = hits[0]
                         fm, body = parse_frontmatter((bundle / hit["path"]).read_text())
                         cited = Path(fm["source_path"])
                         self.assertEqual(cited, east)
